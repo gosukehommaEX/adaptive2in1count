@@ -27,7 +27,9 @@ information_factor(
 follow-up period.}
 
 \item{shape}{Distribution of the follow-up period, one of
-\code{"complete"}, \code{"uniform"} and \code{"exponential"}.}
+\code{"complete"}, \code{"uniform"} and \code{"exponential"}. The two
+random distributions both use \code{dropout} as the proportion who leave
+early and both reduce to complete follow-up when it is zero.}
 }
 \value{
 A numeric value holding the information per patient.

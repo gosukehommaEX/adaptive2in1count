@@ -24,10 +24,12 @@ Counts follow an additive gamma frailty model. Patient `i` carries a frailty
 component shared by the two endpoints, with shape `shared`, and a component
 specific to each endpoint, so each endpoint is marginally negative binomial with
 its own dispersion. A single follow-up period determines the exposure of both
-endpoints, `min(T, window1)` and `min(T, window2)`, and the period is either
-complete, uniform on the follow-up window, or an exponential variable truncated
-at that window with `dropout` as the proportion who leave, following Tang (2015)
-and Homma and Daimon (2021).
+endpoints, `min(T, window1)` and `min(T, window2)`. The period is either
+complete, a two point mixture in which a proportion `dropout` leave at a time
+uniform on the follow-up window, or an exponential variable truncated at that
+window with the same `dropout` as the proportion who leave, following Tang
+(2015) and Homma and Daimon (2021). Both random forms reduce to complete
+follow-up when `dropout` is zero.
 
 The two endpoints of a patient are therefore correlated through two mechanisms.
 The shared frailty correlates the underlying event rates, and a random follow-up

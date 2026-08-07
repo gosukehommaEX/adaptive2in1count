@@ -22,7 +22,9 @@ prespecified follow-up period.}
 follow-up period.}
 
 \item{shape}{Distribution of the follow-up period, one of
-\code{"complete"}, \code{"uniform"} and \code{"exponential"}.}
+\code{"complete"}, \code{"uniform"} and \code{"exponential"}. The two
+random distributions both use \code{dropout} as the proportion who leave
+early and both reduce to complete follow-up when it is zero.}
 }
 \value{
 A list with the mean exposure of each endpoint in \code{first} and
@@ -43,6 +45,8 @@ the two endpoints, separate from the frailty they share.
 }
 \examples{
 follow_up_moments(window1 = 0.5, window2 = 1, shape = "complete")
+follow_up_moments(window1 = 0.5, window2 = 1, dropout = 0.3,
+                  shape = "uniform")
 follow_up_moments(window1 = 0.5, window2 = 1, dropout = 0.3,
                   shape = "exponential")
 }

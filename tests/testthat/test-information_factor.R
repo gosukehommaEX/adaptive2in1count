@@ -23,25 +23,45 @@ test_that("the reciprocal reproduces the familiar variance", {
 
 test_that("dropout reduces the information", {
   complete <- information_factor(1.3, 0.8, 1, 1)
-  for (dropout in c(0.1, 0.3, 0.5)) {
-    reduced <- information_factor(1.3, 0.8, 1, 1, dropout, "exponential")
-    expect_lt(reduced, complete)
+  for (shape in c("uniform", "exponential")) {
+    for (dropout in c(0.1, 0.3, 0.5)) {
+      expect_lt(information_factor(1.3, 0.8, 1, 1, dropout, shape), complete)
+    }
+    values <- vapply(c(0.1, 0.3, 0.5, 0.7), function(d) {
+      information_factor(1.3, 0.8, 1, 1, d, shape)
+    }, numeric(1))
+    expect_true(all(diff(values) < 0))
   }
-  values <- vapply(c(0.1, 0.3, 0.5, 0.7), function(d) {
-    information_factor(1.3, 0.8, 1, 1, d, "exponential")
-  }, numeric(1))
-  expect_true(all(diff(values) < 0))
 })
 
 test_that("the uniform follow-up period matches its closed form", {
   rate <- 1.3
   dispersion <- 0.8
   window <- 1
-  expected <- dispersion -
-    dispersion^2 / (rate * window) * log(1 + rate * window / dispersion)
-  expect_equal(information_factor(rate, dispersion, window, window,
-                                  shape = "uniform"),
-               expected, tolerance = 1e-7)
+  mean_count <- rate * window
+  complete <- dispersion * mean_count / (dispersion + mean_count)
+  early <- dispersion -
+    dispersion^2 / mean_count * log(1 + mean_count / dispersion)
+  for (dropout in c(0.2, 0.5, 1)) {
+    expect_equal(information_factor(rate, dispersion, window, window, dropout,
+                                    "uniform"),
+                 (1 - dropout) * complete + dropout * early, tolerance = 1e-7)
+  }
+})
+
+test_that("a dropout proportion of zero reduces to complete follow-up", {
+  reference <- information_factor(1.3, 0.8, 0.5, 1)
+  for (shape in c("uniform", "exponential")) {
+    expect_equal(information_factor(1.3, 0.8, 0.5, 1, 0, shape), reference,
+                 tolerance = 1e-10)
+  }
+})
+
+test_that("the exponential period carries less information than the uniform", {
+  for (dropout in c(0.1, 0.3, 0.5)) {
+    expect_lt(information_factor(1.3, 0.8, 1, 1, dropout, "exponential"),
+              information_factor(1.3, 0.8, 1, 1, dropout, "uniform"))
+  }
 })
 
 test_that("a shorter window carries less information", {

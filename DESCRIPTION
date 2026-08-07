@@ -15,9 +15,9 @@ Description: Evaluates the operating characteristics of a two-group 2-in-1
     disease. Counts follow an additive gamma frailty model, so each endpoint is
     marginally negative binomial with its own dispersion, and the two endpoints
     of a patient are correlated both through the frailty and through the
-    follow-up period they share. Patients may leave before the end of that
-    period, with the period distributed as in Tang (2015)
-    <doi:10.1080/10543406.2014.971167>. Final analyses are Wald tests of the log
+    follow-up period they share. A stated proportion of patients may leave
+    before the end of that period, with the period distributed as in Tang
+    (2015) <doi:10.1080/10543406.2014.971167>. Final analyses are Wald tests of the log
     rate ratio from a negative binomial model with an offset for the realized
     exposure, and the type I error rate, the power, the probability of
     expansion, the expected sample size and the required sample size follow from
@@ -28,6 +28,8 @@ Description: Evaluates the operating characteristics of a two-group 2-in-1
 License: MIT + file LICENSE
 URL: https://github.com/gosukehommaEX/adaptive2in1count
 BugReports: https://github.com/gosukehommaEX/adaptive2in1count/issues
+Depends:
+    R (>= 3.5.0)
 Encoding: UTF-8
 Imports:
     MASS,

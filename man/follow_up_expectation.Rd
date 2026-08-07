@@ -16,8 +16,10 @@ follow_up_expectation(
 
 \item{window}{Prespecified follow-up period.}
 
-\item{dropout}{Proportion of patients who drop out before the end of the
-period, used only by the exponential distribution.}
+\item{dropout}{Proportion of patients who leave before the end of the period.
+A value of one is admissible for the uniform distribution, where it gives
+the period used by Tang (2015) when every patient leaves early, but not for
+the exponential distribution.}
 
 \item{shape}{Distribution of the follow-up period, one of
 \code{"complete"}, \code{"uniform"} and \code{"exponential"}.}
@@ -27,18 +29,24 @@ A numeric value holding the expectation.
 }
 \description{
 Integrates a function of the realised follow-up period over the distribution
-assumed for that period. Three distributions are available, following Tang
-(2015, 2018) and Homma and Daimon (2021). Under \code{"complete"} every
-patient is followed for the whole period \code{window}. Under
-\code{"uniform"} the follow-up period is uniform on the interval from zero to
-\code{window}, and \code{dropout} is not used. Under \code{"exponential"} the
-follow-up period is an exponential variable truncated at \code{window}, with
-rate \code{-log(1 - dropout) / window}, so that \code{dropout} is the
-proportion of patients who leave before the end of the period.
+assumed for that period, following Tang (2015, 2018) and Homma and Daimon
+(2021). In every case \code{dropout} is the proportion of patients who leave
+before the end of the period.
+}
+\details{
+Under \code{"complete"} every patient is followed for the whole period
+\code{window}. Under \code{"uniform"} a proportion \code{dropout} of patients
+leave at a time that is uniform on the interval from zero to \code{window}
+and the remainder are followed to the end, so the period is a two point
+mixture. Under \code{"exponential"} the period is an exponential variable
+truncated at \code{window}, with rate \code{-log(1 - dropout) / window}. Both
+random distributions reduce to complete follow-up when \code{dropout} is
+zero.
 }
 \examples{
 follow_up_expectation(function(t) t, window = 2, shape = "complete")
-follow_up_expectation(function(t) t, window = 2, shape = "uniform")
-follow_up_expectation(function(t) t, window = 2, dropout = 0.3,
+follow_up_expectation(function(t) t, window = 2, dropout = 0.4,
+                      shape = "uniform")
+follow_up_expectation(function(t) t, window = 2, dropout = 0.4,
                       shape = "exponential")
 }

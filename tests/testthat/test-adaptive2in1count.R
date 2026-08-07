@@ -86,12 +86,24 @@ test_that("a negligible dropout proportion reproduces complete follow-up", {
                tolerance = 1e-5)
 })
 
-test_that("the uniform follow-up period is more severe than the exponential", {
-  uniform <- design(cutpoint = 0.8, ratio1 = 0.65, ratio2 = 0.75,
-                    dropout_shape = "uniform")
-  exponential <- design(cutpoint = 0.8, ratio1 = 0.65, ratio2 = 0.75,
-                        dropout = 0.4, dropout_shape = "exponential")
-  expect_lt(uniform$results$rejection, exponential$results$rejection)
+test_that("the exponential period is more severe than the uniform period", {
+  for (dropout in c(0.2, 0.4)) {
+    uniform <- design(cutpoint = 0.8, ratio1 = 0.65, ratio2 = 0.75,
+                      dropout = dropout, dropout_shape = "uniform")
+    exponential <- design(cutpoint = 0.8, ratio1 = 0.65, ratio2 = 0.75,
+                          dropout = dropout, dropout_shape = "exponential")
+    expect_lt(exponential$results$rejection, uniform$results$rejection)
+  }
+})
+
+test_that("either random period at no dropout reproduces complete follow-up", {
+  reference <- design(cutpoint = c(0.6, 1), ratio1 = 0.65, ratio2 = 0.75)
+  for (shape in c("uniform", "exponential")) {
+    matched <- design(cutpoint = c(0.6, 1), ratio1 = 0.65, ratio2 = 0.75,
+                      dropout = 0, dropout_shape = shape)
+    expect_equal(matched$results$rejection, reference$results$rejection,
+                 tolerance = 1e-10)
+  }
 })
 
 test_that("a larger large trial gives more power once the trial expands", {
