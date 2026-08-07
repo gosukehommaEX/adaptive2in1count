@@ -186,4 +186,5 @@ Statistics* 2015; 25: 1100-1113.
 
 Homma G, Daimon T. Sample size calculation for "gold-standard" noninferiority
 trials with fixed margins and negative binomial endpoints. *Statistics in
-Biopharmaceutical Research* 2021.
+Biopharmaceutical Research* 2021; 13(4): 435-447.
+<https://doi.org/10.1080/19466315.2020.1766551>
