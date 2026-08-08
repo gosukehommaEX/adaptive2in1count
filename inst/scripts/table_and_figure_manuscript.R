@@ -202,9 +202,9 @@ d5$loss <- factor(d5$dropout, levels = c(0, 0.1, 0.2))
 d5$row <- factor(d5$label, levels = c("Phase 3 assumptions",
                                       "Phase 2 assumptions"),
                  labels = c("Phase~3~assumptions", "Phase~2~assumptions"))
-d5$col <- factor(d5$window1, levels = c(0.25, 0.5, 1),
+d5$col <- factor(d5$window1, levels = c(0.25, 0.5, 0.75),
                  labels = c("tau[1] == 0.25", "tau[1] == 0.50",
-                            "tau[1] == 1.00"))
+                            "tau[1] == 0.75"))
 lab_loss5 <- parse(text = c("No~dropout", "italic(d) == 0.1",
                             "italic(d) == 0.2"))
 fig5 <- ggplot(d5, aes(cutpoint, rejection, colour = loss, linetype = loss)) +
@@ -228,8 +228,8 @@ mat1 <- cbind(fmt(t1$target, 2), fmt(t1$cutpoint, 3), fmt(t1$go_null, 3),
               fmt(t1$power_small, 3), fmt(t1$power_large, 3),
               fmt(t1$size_alternative, 0))
 head1 <- list(
-  c("\\multicolumn{2}{c}{Cutpoint}", "\\multicolumn{3}{c}{Under $H_0$}",
-    "\\multicolumn{5}{c}{Under $H_1$}"),
+  c("\\multicolumn{2}{c}{Cutpoint}", "\\multicolumn{3}{c}{Under $\\mathrm{H}_0$}",
+    "\\multicolumn{5}{c}{Under $\\mathrm{H}_1$}"),
   c("Target", "$C$", "$\\Pr(\\mathrm{expand})$", "Type I", "$E(N)$",
     "$\\Pr(\\mathrm{expand})$", "Power", "Small", "Large", "$E(N)$"))
 cap1 <- paste(
@@ -247,7 +247,7 @@ cap1 <- paste(
   "of 0.025. The trial expands when the observed rate ratio of the Phase 2",
   "endpoint is at or below the cutpoint $C$, which is chosen so that the",
   "probability of expansion attains the value in the column headed target when",
-  "the Phase 2 rate ratio is 0.65. $H_0$ sets both rate ratios to one and $H_1$",
+  "the Phase 2 rate ratio is 0.65. $\\mathrm{H}_0$ sets both rate ratios to one and $\\mathrm{H}_1$",
   "sets the Phase 2 rate ratio to 0.65 and the Phase 3 rate ratio to 0.75. The",
   "columns headed small and large split the power into the small trial and the",
   "large trial, and $E(N)$ is the expected total number of patients")
@@ -265,7 +265,7 @@ mat2 <- cbind(fmt(t2$target, 2), fmt(t2$cutpoint, 3),
               ifelse(is.na(t2$required), "---",
                      formatC(t2$required, format = "d", big.mark = ",")))
 head2 <- list(
-  c("\\multicolumn{2}{c}{Cutpoint}", "\\multicolumn{4}{c}{Power under $H_1$}",
+  c("\\multicolumn{2}{c}{Cutpoint}", "\\multicolumn{4}{c}{Power under $\\mathrm{H}_1$}",
     ""),
   c("Target", "$C$", "$\\Pr(\\mathrm{expand})$", "Attained", "Small",
     "Limit", "$N$ for 0.85"))
@@ -292,19 +292,19 @@ t3 <- readRDS(file.path(data_dir, "validation_table.rds"))
 # proportion, which is more compact than a sentence and keeps the table inside
 # the text width.
 short3 <- c(
-  "Reference design, global null" = "Reference, $H_0$, $d = 0$",
-  "Reference design, global null, dropout 0.3" = "Reference, $H_0$, $d = 0.3$",
+  "Reference design, global null" = "Reference, $\\mathrm{H}_0$, $d = 0$",
+  "Reference design, global null, dropout 0.3" = "Reference, $\\mathrm{H}_0$, $d = 0.3$",
   "Reference design, both endpoints, dropout 0.3" =
-    "Reference, $H_1$, $d = 0.3$",
+    "Reference, $\\mathrm{H}_1$, $d = 0.3$",
   "Reference design, both endpoints, dropout 0.5" =
-    "Reference, $H_1$, $d = 0.5$",
-  "Small design, global null, dropout 0.3" = "Small, $H_0$, $d = 0.3$",
-  "Small design, both endpoints, dropout 0.3" = "Small, $H_1$, $d = 0.3$",
-  "Shared endpoint, global null, dropout 0.3" = "Shared, $H_0$, $d = 0.3$",
+    "Reference, $\\mathrm{H}_1$, $d = 0.5$",
+  "Small design, global null, dropout 0.3" = "Small, $\\mathrm{H}_0$, $d = 0.3$",
+  "Small design, both endpoints, dropout 0.3" = "Small, $\\mathrm{H}_1$, $d = 0.3$",
+  "Shared endpoint, global null, dropout 0.3" = "Shared, $\\mathrm{H}_0$, $d = 0.3$",
   "Shared endpoint, both windows, dropout 0.3" =
-    "Shared, $H_1$, $d = 0.3$, $\\tau_1 = 0.5$",
+    "Shared, $\\mathrm{H}_1$, $d = 0.3$, $\\tau_1 = 0.5$",
   "Shared endpoint, one window, dropout 0.3" =
-    "Shared, $H_1$, $d = 0.3$, $\\tau_1 = 1$")
+    "Shared, $\\mathrm{H}_1$, $d = 0.3$, $\\tau_1 = 1$")
 stopifnot(all(t3$label %in% names(short3)))
 label3 <- unname(short3[t3$label])
 mat3 <- cbind(ifelse(duplicated(label3), "", label3), fmt(t3$cutpoint, 1),
@@ -327,8 +327,8 @@ cap3 <- paste(
   "trials and differ only in the analysis. The rows headed reference and small",
   "have two endpoints that count different events, and the rows headed shared",
   "have one endpoint counted over the interim window $\\tau_1$ and over the",
-  "year, with rate 1.3 events per year and dispersion 0.8. $H_0$ sets the rate",
-  "ratios to one, $H_1$ sets the Phase 2 rate ratio to 0.65 and the Phase 3",
+  "year, with rate 1.3 events per year and dispersion 0.8. $\\mathrm{H}_0$ sets the rate",
+  "ratios to one, $\\mathrm{H}_1$ sets the Phase 2 rate ratio to 0.65 and the Phase 3",
   "rate ratio to 0.75 for two endpoints and sets the single rate ratio to 0.75",
   "for a shared endpoint. Each simulated value uses",
   paste0(format(min(t3$nsim), big.mark = ",", scientific = FALSE),
@@ -353,7 +353,7 @@ mat4 <- cbind(ifelse(duplicated(t4$label), "", t4$label), fmt(t4$target, 2),
               fmt(t4$size_alternative, 0))
 head4 <- list(
   c("", "\\multicolumn{2}{c}{Cutpoint}", "",
-    "\\multicolumn{4}{c}{Under $H_1$}", ""),
+    "\\multicolumn{4}{c}{Under $\\mathrm{H}_1$}", ""),
   c("Assumptions", "Target", "$C$", "Type I", "Power", "Small", "Limit",
     "$N$ for 0.9", "$E(N)$"))
 cap4 <- paste(
@@ -369,7 +369,9 @@ cap4 <- paste(
   "$\\nu = 1 / 0.7$ and a rate ratio of 0.6. The trial randomises 138 patients",
   "per group before the interim analysis and in the small trial and 530 per",
   "group in the large trial, and the Wald test is applied at a one-sided",
-  "significance level of 0.025. The cutpoint $C$ is chosen so that the",
+  "significance level of 0.025. The interim analysis reads the endpoint before",
+  "the year is complete and both final analyses read it at the year. The",
+  "cutpoint $C$ is chosen so that the",
   "probability of expansion attains the value in the column headed target. The",
   "column headed limit is the power that an arbitrarily large trial would",
   "reach, the column headed $N$ for 0.9 is the total number of patients the",

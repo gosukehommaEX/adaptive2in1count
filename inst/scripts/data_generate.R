@@ -277,7 +277,10 @@ saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
 ## single 2-in-1 trial. Every parameter is a design assumption taken from the
 ## two trials rather than a result of either of them. The protocols state the
 ## dispersion as the variance of the frailty, in the sense of Tang (2015) and
-## Zhu and Lakkis (2014), so it enters here as its reciprocal.
+## Zhu and Lakkis (2014), so it enters here as its reciprocal. The interim
+## analysis reads the endpoint on the enrolled patients before their year is
+## complete and both final analyses read it at the year, so the small trial and
+## the large trial share an endpoint and the interim does not.
 message("(9/9) the tezepelumab design")
 real_settings <- list(
   list(label = "Phase 3 assumptions", rate = 0.9, dispersion = 1 / 2.4,
@@ -290,7 +293,9 @@ real_n3 <- 530
 real_dropout <- 0.1
 real_alpha <- 0.025
 real_power <- 0.9
-real_windows <- c(0.25, 0.5, 1)
+# The interim analysis reads the endpoint before the final analysis does, so
+# the interim window stays strictly below the year.
+real_windows <- c(0.25, 0.5, 0.75)
 real_targets <- seq(0.3, 0.95, by = 0.05)
 
 real_arguments <- function(z, window1, dropout, n3, ratio = z$ratio) {
@@ -298,7 +303,8 @@ real_arguments <- function(z, window1, dropout, n3, ratio = z$ratio) {
        dispersion2 = z$dispersion, shared = z$dispersion, n1 = real_n1,
        n2 = real_n2, n3 = n3, window1 = window1, window2 = 1,
        dropout = dropout, dropout_shape = "uniform", alpha = real_alpha,
-       ratio1 = ratio, ratio2 = ratio, endpoints = "shared")
+       ratio1 = ratio, ratio2 = ratio, small_endpoint = "phase3",
+       endpoints = "shared")
 }
 
 ## (9a) Power against the cutpoint.

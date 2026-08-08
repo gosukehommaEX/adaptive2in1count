@@ -1,6 +1,6 @@
 \begin{table}[htbp]
 \centering
-\caption{Rejection probability of the 2-in-1 adaptive design obtained from the normal approximation and by simulation, for the design of Table~\ref{tab:operating} and for a small design that randomises 30 patients per group before the interim analysis, 45 per group in the small trial and 200 per group in the large trial. The column headed normal is the value returned by the closed-form evaluation. The simulated columns fit the negative binomial model to every generated trial, holding the dispersion at the design value in the first pair of columns and estimating it from the data in the second pair. The two pairs are computed on the same generated trials and differ only in the analysis. The rows headed reference and small have two endpoints that count different events, and the rows headed shared have one endpoint counted over the interim window $\tau_1$ and over the year, with rate 1.3 events per year and dispersion 0.8. $H_0$ sets the rate ratios to one, $H_1$ sets the Phase 2 rate ratio to 0.65 and the Phase 3 rate ratio to 0.75 for two endpoints and sets the single rate ratio to 0.75 for a shared endpoint. Each simulated value uses 10,000 replications for the reference design and 50,000 for the small design, and the standard error is the binomial standard error at that number of replications.}
+\caption{Rejection probability of the 2-in-1 adaptive design obtained from the normal approximation and by simulation, for the design of Table~\ref{tab:operating} and for a small design that randomises 30 patients per group before the interim analysis, 45 per group in the small trial and 200 per group in the large trial. The column headed normal is the value returned by the closed-form evaluation. The simulated columns fit the negative binomial model to every generated trial, holding the dispersion at the design value in the first pair of columns and estimating it from the data in the second pair. The two pairs are computed on the same generated trials and differ only in the analysis. The rows headed reference and small have two endpoints that count different events, and the rows headed shared have one endpoint counted over the interim window $\tau_1$ and over the year, with rate 1.3 events per year and dispersion 0.8. $\mathrm{H}_0$ sets the rate ratios to one, $\mathrm{H}_1$ sets the Phase 2 rate ratio to 0.65 and the Phase 3 rate ratio to 0.75 for two endpoints and sets the single rate ratio to 0.75 for a shared endpoint. Each simulated value uses 10,000 replications for the reference design and 50,000 for the small design, and the standard error is the binomial standard error at that number of replications.}
 \label{tab:validation}
 \vspace{0.6em}
 \footnotesize
@@ -11,31 +11,31 @@
 \cline{4-5}\cline{6-7}
 Scenario & $C$ & Normal & Simulated & SE & Simulated & SE \\
 \hline
-Reference, $H_0$, $d = 0$ & 0.8 & 0.0077 & 0.0078 & 0.0009 & 0.0082 & 0.0009 \\
+Reference, $\mathrm{H}_0$, $d = 0$ & 0.8 & 0.0077 & 0.0078 & 0.0009 & 0.0082 & 0.0009 \\
  & 1.2 & 0.0210 & 0.0208 & 0.0014 & 0.0216 & 0.0015 \\
  & 1.6 & 0.0246 & 0.0244 & 0.0015 & 0.0250 & 0.0016 \\
-Reference, $H_0$, $d = 0.3$ & 0.8 & 0.0080 & 0.0072 & 0.0008 & 0.0074 & 0.0009 \\
+Reference, $\mathrm{H}_0$, $d = 0.3$ & 0.8 & 0.0080 & 0.0072 & 0.0008 & 0.0074 & 0.0009 \\
  & 1.2 & 0.0210 & 0.0216 & 0.0015 & 0.0217 & 0.0015 \\
  & 1.6 & 0.0246 & 0.0259 & 0.0016 & 0.0257 & 0.0016 \\
-Reference, $H_1$, $d = 0.3$ & 0.8 & 0.7537 & 0.7554 & 0.0043 & 0.7577 & 0.0043 \\
+Reference, $\mathrm{H}_1$, $d = 0.3$ & 0.8 & 0.7537 & 0.7554 & 0.0043 & 0.7577 & 0.0043 \\
  & 1.2 & 0.9367 & 0.9377 & 0.0024 & 0.9381 & 0.0024 \\
  & 1.6 & 0.9465 & 0.9481 & 0.0022 & 0.9482 & 0.0022 \\
-Reference, $H_1$, $d = 0.5$ & 0.8 & 0.7294 & 0.7322 & 0.0044 & 0.7322 & 0.0044 \\
+Reference, $\mathrm{H}_1$, $d = 0.5$ & 0.8 & 0.7294 & 0.7322 & 0.0044 & 0.7322 & 0.0044 \\
  & 1.2 & 0.9116 & 0.9126 & 0.0028 & 0.9127 & 0.0028 \\
  & 1.6 & 0.9228 & 0.9249 & 0.0026 & 0.9254 & 0.0026 \\
-Small, $H_0$, $d = 0.3$ & 0.8 & 0.0106 & 0.0105 & 0.0005 & 0.0109 & 0.0005 \\
+Small, $\mathrm{H}_0$, $d = 0.3$ & 0.8 & 0.0106 & 0.0105 & 0.0005 & 0.0109 & 0.0005 \\
  & 1.2 & 0.0194 & 0.0191 & 0.0006 & 0.0196 & 0.0006 \\
  & 1.6 & 0.0232 & 0.0231 & 0.0007 & 0.0238 & 0.0007 \\
-Small, $H_1$, $d = 0.3$ & 0.8 & 0.3295 & 0.3295 & 0.0021 & 0.3315 & 0.0021 \\
+Small, $\mathrm{H}_1$, $d = 0.3$ & 0.8 & 0.3295 & 0.3295 & 0.0021 & 0.3315 & 0.0021 \\
  & 1.2 & 0.4251 & 0.4269 & 0.0022 & 0.4291 & 0.0022 \\
  & 1.6 & 0.4479 & 0.4498 & 0.0022 & 0.4522 & 0.0022 \\
-Shared, $H_0$, $d = 0.3$ & 0.8 & 0.0120 & 0.0116 & 0.0011 & 0.0111 & 0.0010 \\
+Shared, $\mathrm{H}_0$, $d = 0.3$ & 0.8 & 0.0120 & 0.0116 & 0.0011 & 0.0111 & 0.0010 \\
  & 1.2 & 0.0229 & 0.0230 & 0.0015 & 0.0234 & 0.0015 \\
  & 1.6 & 0.0248 & 0.0247 & 0.0016 & 0.0253 & 0.0016 \\
-Shared, $H_1$, $d = 0.3$, $\tau_1 = 0.5$ & 0.8 & 0.5761 & 0.5758 & 0.0049 & 0.5758 & 0.0049 \\
+Shared, $\mathrm{H}_1$, $d = 0.3$, $\tau_1 = 0.5$ & 0.8 & 0.5761 & 0.5758 & 0.0049 & 0.5758 & 0.0049 \\
  & 1.2 & 0.9038 & 0.9069 & 0.0029 & 0.9072 & 0.0029 \\
  & 1.6 & 0.9437 & 0.9447 & 0.0023 & 0.9450 & 0.0023 \\
-Shared, $H_1$, $d = 0.3$, $\tau_1 = 1$ & 0.8 & 0.5965 & 0.5954 & 0.0049 & 0.5961 & 0.0049 \\
+Shared, $\mathrm{H}_1$, $d = 0.3$, $\tau_1 = 1$ & 0.8 & 0.5965 & 0.5954 & 0.0049 & 0.5961 & 0.0049 \\
  & 1.2 & 0.9237 & 0.9265 & 0.0026 & 0.9285 & 0.0026 \\
  & 1.6 & 0.9461 & 0.9489 & 0.0022 & 0.9511 & 0.0022 \\
 \hline

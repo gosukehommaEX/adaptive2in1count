@@ -209,9 +209,9 @@ adaptive2in1count_simulate(
 
 `adaptive2in1count_exact()` evaluates the same design without the normal
 approximation, by propagating the joint distribution of the interim total and
-the final total. It applies only to complete follow-up, and its final analyses
-may be an exact conditional test that is free of the nuisance rate or a Wald
-test.
+the final total. It applies only to complete follow-up and only to two
+endpoints that count different events, and its final analyses may be an exact
+conditional test that is free of the nuisance rate or a Wald test.
 
 ## References
 
