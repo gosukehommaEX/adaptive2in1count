@@ -16,8 +16,19 @@
 #' negative binomial with its own dispersion. The two endpoints of a patient are
 #' correlated through the frailty they share and through the follow-up period
 #' they share, and the operating characteristics are obtained from the resulting
-#' trivariate normal distribution of the three log rate ratios.
+#' trivariate normal distribution of the three log rate ratios. Setting
+#' \code{endpoints = "shared"} instead treats the two endpoints as the same
+#' event counted over the two windows, which covers a design whose three
+#' analyses read one endpoint.
 #'
+#'
+#' The negative binomial is written as in Homma and Daimon (2019), so
+#' \code{dispersion1} and \code{dispersion2} are the shapes of the gamma
+#' frailty and a count with mean \code{mu} has variance
+#' \code{mu + mu^2 / dispersion}. This is the \code{size} argument of
+#' \code{rnbinom()}. Tang (2015) and Zhu and Lakkis (2014) instead report the
+#' variance of the frailty, which is the reciprocal, so a dispersion of 2.4 in
+#' their sense is \code{dispersion = 1 / 2.4} here.
 #' A lower rate indicates greater efficacy, so the investigational group is the
 #' first group throughout and the null hypothesis is rejected when its rate is
 #' significantly lower.
@@ -47,7 +58,15 @@
 #' @param ratio1 True rate ratio for the Phase 2 endpoint.
 #' @param ratio2 True rate ratio for the Phase 3 endpoint.
 #' @param small_endpoint Endpoint analysed at the final analysis of the small
-#'   trial, either \code{"phase2"} or \code{"phase3"}.
+#'   trial, either   \code{"phase2"} or \code{"phase3"}.
+#' @param endpoints Relationship between the two endpoints, either
+#'   \code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+#'   endpoints count different events and are independent given the frailty.
+#'   Under \code{"shared"} they count the same events over the two windows, so
+#'   the Phase 2 count is part of the Phase 3 count. A single process then
+#'   governs both endpoints, and the arguments \code{rate1},
+#'   \code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+#'   \code{rate2}, \code{dispersion2} and \code{ratio2}.
 #' @return An object of class \code{adaptive2in1count} holding the data frame
 #'   \code{results} with one row per cutpoint, together with the design inputs
 #'   and the components returned by \code{design_components()}.
@@ -71,9 +90,17 @@ adaptive2in1count <- function(rate1, rate2, dispersion1, dispersion2, shared,
                               dropout_shape = c("complete", "uniform",
                                                 "exponential"),
                               alpha = 0.025, ratio1 = 1, ratio2 = 1,
-                              small_endpoint = c("phase2", "phase3")) {
+                              small_endpoint = c("phase2", "phase3"),
+                              endpoints = c("distinct", "shared")) {
   dropout_shape <- match.arg(dropout_shape)
   small_endpoint <- match.arg(small_endpoint)
+  endpoints <- match.arg(endpoints)
+  if (endpoints == "shared") {
+    rate1 <- rate2
+    dispersion1 <- dispersion2
+    shared <- dispersion2
+    ratio1 <- ratio2
+  }
   for (nm in c("rate1", "rate2", "dispersion1", "dispersion2", "ratio1",
                "ratio2")) {
     value <- get(nm)
@@ -96,7 +123,8 @@ adaptive2in1count <- function(rate1, rate2, dispersion1, dispersion2, shared,
                              n1 = n1, n2 = n2, n3 = n3, window1 = window1,
                              window2 = window2, dropout = dropout,
                              dropout_shape = dropout_shape, ratio1 = ratio1,
-                             ratio2 = ratio2, small_endpoint = small_endpoint)
+                             ratio2 = ratio2, small_endpoint = small_endpoint,
+                             endpoints = endpoints)
   n1 <- expand_group_size(n1, "n1")
   n2 <- expand_group_size(n2, "n2")
   n3 <- expand_group_size(n3, "n3")
@@ -132,7 +160,7 @@ adaptive2in1count <- function(rate1, rate2, dispersion1, dispersion2, shared,
                  window1 = window1, window2 = window2,
                  dropout = parts$dropout, dropout_shape = dropout_shape,
                  alpha = alpha, ratio1 = ratio1, ratio2 = ratio2,
-                 small_endpoint = small_endpoint, components = parts,
-                 call = match.call()),
+                 small_endpoint = small_endpoint, endpoints = endpoints,
+                 components = parts, call = match.call()),
             class = "adaptive2in1count")
 }

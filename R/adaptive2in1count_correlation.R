@@ -7,6 +7,14 @@
 #' reports whether the requirement is met.
 #'
 #' @inheritParams design_components
+#' @param endpoints Relationship between the two endpoints, either
+#'   \code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+#'   endpoints count different events and are independent given the frailty.
+#'   Under \code{"shared"} they count the same events over the two windows, so
+#'   the Phase 2 count is part of the Phase 3 count. A single process then
+#'   governs both endpoints, and the arguments \code{rate1},
+#'   \code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+#'   \code{rate2}, \code{dispersion2} and \code{ratio2}.
 #' @return An object of class \code{adaptive2in1count_correlation} holding the
 #'   within-patient endpoint correlation, the correlation of the interim
 #'   statistic with each final statistic, and whether the requirement is met.
@@ -26,19 +34,23 @@ adaptive2in1count_correlation <- function(rate1, rate2, dispersion1,
                                                             "exponential"),
                                           ratio1 = 1, ratio2 = 1,
                                           small_endpoint = c("phase2",
-                                                             "phase3")) {
+                                                             "phase3"),
+                                          endpoints = c("distinct",
+                                                        "shared")) {
   dropout_shape <- match.arg(dropout_shape)
   small_endpoint <- match.arg(small_endpoint)
+  endpoints <- match.arg(endpoints)
   parts <- design_components(rate1 = rate1, rate2 = rate2,
                              dispersion1 = dispersion1,
                              dispersion2 = dispersion2, shared = shared,
                              n1 = n1, n2 = n2, n3 = n3, window1 = window1,
                              window2 = window2, dropout = dropout,
                              dropout_shape = dropout_shape, ratio1 = ratio1,
-                             ratio2 = ratio2, small_endpoint = small_endpoint)
+                             ratio2 = ratio2, small_endpoint = small_endpoint,
+                             endpoints = endpoints)
   endpoint <- endpoint_correlation(rate1, rate2, dispersion1, dispersion2,
                                    shared, window1, window2, parts$dropout[2],
-                                   dropout_shape)
+                                   dropout_shape, endpoints)
   structure(list(endpoint = endpoint,
                  interim_small = parts$correlation[["interim_small"]],
                  interim_large = parts$correlation[["interim_large"]],
@@ -51,6 +63,7 @@ adaptive2in1count_correlation <- function(rate1, rate2, dispersion1,
                  n3 = expand_group_size(n3, "n3"), window1 = window1,
                  window2 = window2, dropout = parts$dropout,
                  dropout_shape = dropout_shape,
-                 small_endpoint = small_endpoint, call = match.call()),
+                 small_endpoint = small_endpoint, endpoints = endpoints,
+                 call = match.call()),
             class = "adaptive2in1count_correlation")
 }

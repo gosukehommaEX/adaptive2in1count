@@ -16,6 +16,11 @@
 #' operating characteristics carry no Monte Carlo error and are exact up to the
 #' truncation tolerance \code{tol}.
 #'
+#' Only the structure in which the two endpoints count different events is
+#' available here. A design whose two endpoints count the same events over the
+#' two windows, which \code{adaptive2in1count()} evaluates with
+#' \code{endpoints = "shared"}, is not covered by this function.
+#'
 #' A lower count indicates greater efficacy, so the investigational group is the
 #' first group throughout and the null hypothesis is rejected when its rate is
 #' significantly lower.

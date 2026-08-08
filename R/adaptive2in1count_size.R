@@ -19,6 +19,14 @@
 #' @param interval Interval of per-group sizes searched for the solution. The
 #'   search is a bisection over whole numbers, so the returned size is the
 #'   smallest one in the interval that attains the target.
+#' @param endpoints Relationship between the two endpoints, either
+#'   \code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+#'   endpoints count different events and are independent given the frailty.
+#'   Under \code{"shared"} they count the same events over the two windows, so
+#'   the Phase 2 count is part of the Phase 3 count. A single process then
+#'   governs both endpoints, and the arguments \code{rate1},
+#'   \code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+#'   \code{rate2}, \code{dispersion2} and \code{ratio2}.
 #' @return A list with the required per-group sizes in \code{n3}, the attained
 #'   \code{power} and the expected total sample size in \code{expected_size}.
 #' @export
@@ -44,10 +52,12 @@ adaptive2in1count_size <- function(rate1, rate2, dispersion1, dispersion2,
                                                      "exponential"),
                                    alpha = 0.025,
                                    small_endpoint = c("phase2", "phase3"),
+                                   endpoints = c("distinct", "shared"),
                                    allocation = c(1, 1),
                                    interval = c(10, 20000)) {
   dropout_shape <- match.arg(dropout_shape)
   small_endpoint <- match.arg(small_endpoint)
+  endpoints <- match.arg(endpoints)
   if (!is.numeric(target) || length(target) != 1L || is.na(target) ||
       target <= 0 || target >= 1) {
     stop("'target' must be a single numeric value between 0 and 1.")
@@ -65,7 +75,8 @@ adaptive2in1count_size <- function(rate1, rate2, dispersion1, dispersion2,
                       window1 = window1, window2 = window2, dropout = dropout,
                       dropout_shape = dropout_shape, alpha = alpha,
                       ratio1 = ratio1, ratio2 = ratio2,
-                      small_endpoint = small_endpoint)$results
+                      small_endpoint = small_endpoint,
+                      endpoints = endpoints)$results
   }
   # Expanding is the only route to the large trial, so the power approaches the
   # probability of expansion plus the contribution of the small trial and
@@ -100,7 +111,8 @@ adaptive2in1count_size <- function(rate1, rate2, dispersion1, dispersion2,
                              window1 = window1, window2 = window2,
                              dropout = dropout, dropout_shape = dropout_shape,
                              alpha = alpha, ratio1 = ratio1, ratio2 = ratio2,
-                             small_endpoint = small_endpoint)
+                             small_endpoint = small_endpoint,
+                             endpoints = endpoints)
   list(n3 = size, power = final$results$rejection,
        expected_size = final$results$expected_size)
 }

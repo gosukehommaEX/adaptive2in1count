@@ -21,7 +21,8 @@ adaptive2in1count(
   alpha = 0.025,
   ratio1 = 1,
   ratio2 = 1,
-  small_endpoint = c("phase2", "phase3")
+  small_endpoint = c("phase2", "phase3"),
+  endpoints = c("distinct", "shared")
 )
 }
 \arguments{
@@ -66,7 +67,16 @@ follow-up period, either a single value or a vector of length two.}
 \item{ratio2}{True rate ratio for the Phase 3 endpoint.}
 
 \item{small_endpoint}{Endpoint analysed at the final analysis of the small
-trial, either \code{"phase2"} or \code{"phase3"}.}
+trial, either   \code{"phase2"} or \code{"phase3"}.}
+
+\item{endpoints}{Relationship between the two endpoints, either
+\code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+endpoints count different events and are independent given the frailty.
+Under \code{"shared"} they count the same events over the two windows, so
+the Phase 2 count is part of the Phase 3 count. A single process then
+governs both endpoints, and the arguments \code{rate1},
+\code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+\code{rate2}, \code{dispersion2} and \code{ratio2}.}
 }
 \value{
 An object of class \code{adaptive2in1count} holding the data frame
@@ -91,8 +101,18 @@ Counts follow an additive gamma frailty model, so each endpoint is marginally
 negative binomial with its own dispersion. The two endpoints of a patient are
 correlated through the frailty they share and through the follow-up period
 they share, and the operating characteristics are obtained from the resulting
-trivariate normal distribution of the three log rate ratios.
+trivariate normal distribution of the three log rate ratios. Setting
+\code{endpoints = "shared"} instead treats the two endpoints as the same
+event counted over the two windows, which covers a design whose three
+analyses read one endpoint.
 
+The negative binomial is written as in Homma and Daimon (2019), so
+\code{dispersion1} and \code{dispersion2} are the shapes of the gamma
+frailty and a count with mean \code{mu} has variance
+\code{mu + mu^2 / dispersion}. This is the \code{size} argument of
+\code{rnbinom()}. Tang (2015) and Zhu and Lakkis (2014) instead report the
+variance of the frailty, which is the reciprocal, so a dispersion of 2.4 in
+their sense is \code{dispersion = 1 / 2.4} here.
 A lower rate indicates greater efficacy, so the investigational group is the
 first group throughout and the null hypothesis is rejected when its rate is
 significantly lower.

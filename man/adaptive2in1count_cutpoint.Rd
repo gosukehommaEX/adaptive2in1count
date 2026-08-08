@@ -20,7 +20,8 @@ adaptive2in1count_cutpoint(
   dropout_shape = c("complete", "uniform", "exponential"),
   ratio1 = 1,
   ratio2 = 1,
-  small_endpoint = c("phase2", "phase3")
+  small_endpoint = c("phase2", "phase3"),
+  endpoints = c("distinct", "shared")
 )
 }
 \arguments{
@@ -58,6 +59,15 @@ a vector of length two giving the investigational and the control group.}
 \item{ratio2}{True rate ratio for the Phase 3 endpoint.}
 
 \item{small_endpoint}{Endpoint analysed in the small trial.}
+
+\item{endpoints}{Relationship between the two endpoints, either
+\code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+endpoints count different events and are independent given the frailty.
+Under \code{"shared"} they count the same events over the two windows, so
+the Phase 2 count is part of the Phase 3 count. A single process then
+governs both endpoints, and the arguments \code{rate1},
+\code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+\code{rate2}, \code{dispersion2} and \code{ratio2}.}
 }
 \value{
 A list with the selected \code{cutpoint} and the attained

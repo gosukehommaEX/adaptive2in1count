@@ -21,6 +21,7 @@ print.adaptive2in1count_correlation <- function(x, digits = 4, ...) {
   cat(sprintf("Dispersions  Phase 2 %g, Phase 3 %g, shared frailty shape %g\n",
               x$dispersion1, x$dispersion2, x$shared))
   cat(sprintf("Windows  Phase 2 %g, Phase 3 %g\n", x$window1, x$window2))
+  cat(sprintf("Endpoints  %s\n", if (identical(x$endpoints, "shared")) "same event over the two windows" else "different events"))
   cat(sprintf("Follow-up  %s, dropout %s\n", x$dropout_shape,
               paste(format(x$dropout, digits = 3), collapse = "/")))
   cat(sprintf("Patients per group  interim %s, small trial %s, large trial %s\n\n",

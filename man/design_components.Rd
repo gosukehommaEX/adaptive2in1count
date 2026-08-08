@@ -19,7 +19,8 @@ design_components(
   dropout_shape = c("complete", "uniform", "exponential"),
   ratio1 = 1,
   ratio2 = 1,
-  small_endpoint = c("phase2", "phase3")
+  small_endpoint = c("phase2", "phase3"),
+  endpoints = c("distinct", "shared")
 )
 }
 \arguments{
@@ -55,6 +56,14 @@ a vector of length two giving the investigational and the control group.}
 \item{ratio2}{True rate ratio for the Phase 3 endpoint.}
 
 \item{small_endpoint}{Endpoint analysed in the small trial.}
+
+\item{endpoints}{Relationship between the two endpoints, either
+\code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+endpoints count different events and are independent given the frailty.
+Under \code{"shared"} they count the same events over the two windows, so
+a single process governs both and the arguments \code{rate1},
+\code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+\code{rate2}, \code{dispersion2} and \code{ratio2}.}
 }
 \value{
 A list with the three variances in \code{variance}, the three means
@@ -73,13 +82,33 @@ patients.
 }
 \details{
 The variance of a log rate is the reciprocal of the number of patients times
-the information per patient of Tang (2015). The covariance between the two
-endpoints within a patient is driven by the frailty they share and by the
-follow-up period they share, and the second contribution is present whenever
-the follow-up period is random.
+the information per patient of Tang (2015). How the covariance between two
+statistics is obtained depends on \code{endpoints}. When the two endpoints
+count different events, the covariance follows from the frailty they share
+and from the follow-up period they share, and the second contribution is
+present whenever the follow-up period is random. When they count the same
+events over the two windows, the data behind the earlier statistic are part
+of the data behind the later one, so the covariance equals the variance of
+the later statistic, which is the canonical joint distribution of group
+sequential theory.
+
+The negative binomial is written as in Homma and Daimon (2019), so
+\code{dispersion1} and \code{dispersion2} are the shapes of the gamma
+frailty and a count with mean \code{mu} has variance
+\code{mu + mu^2 / dispersion}. This is the \code{size} argument of
+\code{rnbinom()}. Tang (2015) and Zhu and Lakkis (2014) instead report the
+variance of the frailty, which is the reciprocal, so a dispersion of 2.4 in
+their sense is \code{dispersion = 1 / 2.4} here.
 }
 \examples{
 design_components(rate1 = 2.6, rate2 = 1.3, dispersion1 = 0.8,
                   dispersion2 = 0.8, shared = 0.4, n1 = 60, n2 = 90,
                   n3 = 300, window1 = 0.5, window2 = 1)
+
+# The same event counted over half a year at the interim analysis and over
+# a year at the final analysis.
+design_components(rate1 = 1.3, rate2 = 1.3, dispersion1 = 0.8,
+                  dispersion2 = 0.8, shared = 0.8, n1 = 60, n2 = 90,
+                  n3 = 300, window1 = 0.5, window2 = 1,
+                  endpoints = "shared")
 }

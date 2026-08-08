@@ -1,10 +1,14 @@
 #' Simulated operating characteristics of a 2-in-1 adaptive design for counts
 #'
-#' Generates trials from the additive gamma frailty model with a random
-#' follow-up period and analyses each of them by fitting a negative binomial
-#' model with an offset for the realised exposure and applying a Wald test to
-#' the log rate ratio. The function checks the normal approximation used by
-#' \code{adaptive2in1count()}.
+#' Generates trials from the model with a random follow-up period and analyses
+#' each of them by fitting a negative binomial model with an offset for the
+#' realised exposure and applying a Wald test to the log rate ratio. The
+#' function checks the normal approximation used by
+#' \code{adaptive2in1count()}. With \code{endpoints = "distinct"} the counts
+#' come from the additive gamma frailty model. With \code{endpoints =
+#' "shared"} a single mixed Poisson process is generated per patient, the Phase
+#' 2 count is the number of events in the shorter window and the Phase 3 count
+#' adds the events of the remaining period.
 #'
 #' Three analyses are available. With \code{method = "estimated"} the two rates
 #' and the common dispersion are estimated by maximum likelihood, which is the
@@ -20,6 +24,14 @@
 #' dispersion.
 #'
 #' @inheritParams adaptive2in1count
+#' @param endpoints Relationship between the two endpoints, either
+#'   \code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+#'   endpoints count different events and are independent given the frailty.
+#'   Under \code{"shared"} they count the same events over the two windows, so
+#'   the Phase 2 count is part of the Phase 3 count. A single process then
+#'   governs both endpoints, and the arguments \code{rate1},
+#'   \code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+#'   \code{rate2}, \code{dispersion2} and \code{ratio2}.
 #' @param method Analysis applied to each simulated trial, one of
 #'   \code{"estimated"} for the maximum likelihood fit of the two rates and the
 #'   dispersion, \code{"known"} for the same fit with the dispersion held at the
@@ -48,13 +60,21 @@ adaptive2in1count_simulate <- function(rate1, rate2, dispersion1, dispersion2,
                                                          "exponential"),
                                        alpha = 0.025, ratio1 = 1, ratio2 = 1,
                                        small_endpoint = c("phase2", "phase3"),
+                                       endpoints = c("distinct", "shared"),
                                        method = c("estimated", "known",
                                                   "glm"),
                                        nsim = 2000, batch = 2000,
                                        seed = NULL) {
   dropout_shape <- match.arg(dropout_shape)
   small_endpoint <- match.arg(small_endpoint)
+  endpoints <- match.arg(endpoints)
   method <- match.arg(method)
+  if (endpoints == "shared") {
+    rate1 <- rate2
+    dispersion1 <- dispersion2
+    shared <- dispersion2
+    ratio1 <- ratio2
+  }
   if (!is.null(seed)) {
     set.seed(seed)
   }
@@ -80,7 +100,12 @@ adaptive2in1count_simulate <- function(rate1, rate2, dispersion1, dispersion2,
       return(rep(window2, size))
     }
     if (dropout_shape == "uniform") {
-      return(pmax(runif(size, 0, window2), floor_exposure))
+      # Two point mixture, as in follow_up_expectation(). A proportion
+      # 'dropout' leave at a time uniform on the follow-up period and the rest
+      # are followed to the end.
+      early <- runif(size) < dropout[group]
+      period <- ifelse(early, runif(size, 0, window2), window2)
+      return(pmax(period, floor_exposure))
     }
     lambda <- -log(1 - dropout[group]) / window2
     pmax(pmin(rexp(size, rate = lambda), window2), floor_exposure)
@@ -89,6 +114,21 @@ adaptive2in1count_simulate <- function(rate1, rate2, dispersion1, dispersion2,
   draw_group <- function(size, group) {
     follow_up <- matrix(draw_follow_up(size * n3[group], group), nrow = size)
     exposure1 <- pmin(follow_up, window1)
+    if (endpoints == "shared") {
+      # One process per patient. The Phase 2 count is the number of events in
+      # the shorter window and the Phase 3 count adds an independent increment
+      # over the remaining period, so the Phase 2 count is part of it.
+      frailty <- matrix(rgamma(size * n3[group], shape = dispersion2,
+                               rate = dispersion2), nrow = size)
+      count1 <- matrix(rpois(size * n3[group], rate[group, 2] * exposure1 *
+                               frailty), nrow = size)
+      increment <- matrix(rpois(size * n3[group], rate[group, 2] *
+                                 (follow_up - exposure1) * frailty),
+                          nrow = size)
+      count2 <- count1 + increment
+      return(list(count1 = count1, count2 = count2, exposure1 = exposure1,
+                  exposure2 = follow_up))
+    }
     base <- matrix(rgamma(size * n3[group], shape = shared, rate = 1),
                    nrow = size)
     specific1 <- matrix(rgamma(size * n3[group], shape = dispersion1 - shared,

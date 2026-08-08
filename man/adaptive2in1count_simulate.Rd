@@ -22,6 +22,7 @@ adaptive2in1count_simulate(
   ratio1 = 1,
   ratio2 = 1,
   small_endpoint = c("phase2", "phase3"),
+  endpoints = c("distinct", "shared"),
   method = c("estimated", "known", "glm"),
   nsim = 2000,
   batch = 2000,
@@ -70,7 +71,16 @@ follow-up period, either a single value or a vector of length two.}
 \item{ratio2}{True rate ratio for the Phase 3 endpoint.}
 
 \item{small_endpoint}{Endpoint analysed at the final analysis of the small
-trial, either \code{"phase2"} or \code{"phase3"}.}
+trial, either   \code{"phase2"} or \code{"phase3"}.}
+
+\item{endpoints}{Relationship between the two endpoints, either
+\code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+endpoints count different events and are independent given the frailty.
+Under \code{"shared"} they count the same events over the two windows, so
+the Phase 2 count is part of the Phase 3 count. A single process then
+governs both endpoints, and the arguments \code{rate1},
+\code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+\code{rate2}, \code{dispersion2} and \code{ratio2}.}
 
 \item{method}{Analysis applied to each simulated trial, one of
 \code{"estimated"} for the maximum likelihood fit of the two rates and the
@@ -91,11 +101,15 @@ standard errors, the number of usable replications and the number in which
 the analysis failed.
 }
 \description{
-Generates trials from the additive gamma frailty model with a random
-follow-up period and analyses each of them by fitting a negative binomial
-model with an offset for the realised exposure and applying a Wald test to
-the log rate ratio. The function checks the normal approximation used by
-\code{adaptive2in1count()}.
+Generates trials from the model with a random follow-up period and analyses
+each of them by fitting a negative binomial model with an offset for the
+realised exposure and applying a Wald test to the log rate ratio. The
+function checks the normal approximation used by
+\code{adaptive2in1count()}. With \code{endpoints = "distinct"} the counts
+come from the additive gamma frailty model. With \code{endpoints =
+"shared"} a single mixed Poisson process is generated per patient, the Phase
+2 count is the number of events in the shorter window and the Phase 3 count
+adds the events of the remaining period.
 }
 \details{
 Three analyses are available. With \code{method = "estimated"} the two rates

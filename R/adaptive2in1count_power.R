@@ -9,6 +9,14 @@
 #' @inheritParams adaptive2in1count
 #' @param ratio1 Numeric vector of true rate ratios for the Phase 2 endpoint.
 #' @param ratio2 Numeric vector of true rate ratios for the Phase 3 endpoint.
+#' @param endpoints Relationship between the two endpoints, either
+#'   \code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+#'   endpoints count different events and are independent given the frailty.
+#'   Under \code{"shared"} they count the same events over the two windows, so
+#'   the Phase 2 count is part of the Phase 3 count. A single process then
+#'   governs both endpoints, and the arguments \code{rate1},
+#'   \code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+#'   \code{rate2}, \code{dispersion2} and \code{ratio2}.
 #' @return An object of class \code{adaptive2in1count_power} holding the data
 #'   frame \code{results} with one row per combination of rate ratios and
 #'   cutpoints.
@@ -26,9 +34,11 @@ adaptive2in1count_power <- function(rate1, rate2, dispersion1, dispersion2,
                                     dropout_shape = c("complete", "uniform",
                                                       "exponential"),
                                     alpha = 0.025,
-                                    small_endpoint = c("phase2", "phase3")) {
+                                    small_endpoint = c("phase2", "phase3"),
+                                    endpoints = c("distinct", "shared")) {
   dropout_shape <- match.arg(dropout_shape)
   small_endpoint <- match.arg(small_endpoint)
+  endpoints <- match.arg(endpoints)
   if (!is.numeric(ratio1) || length(ratio1) == 0L || anyNA(ratio1) ||
       any(ratio1 <= 0)) {
     stop("'ratio1' must be a numeric vector of positive values.")
@@ -37,7 +47,13 @@ adaptive2in1count_power <- function(rate1, rate2, dispersion1, dispersion2,
       any(ratio2 <= 0)) {
     stop("'ratio2' must be a numeric vector of positive values.")
   }
-  grid <- expand.grid(ratio1 = ratio1, ratio2 = ratio2, KEEP.OUT.ATTRS = FALSE)
+  # A shared endpoint structure has one treatment effect, so only the diagonal
+  # of the grid is meaningful.
+  grid <- if (endpoints == "shared") {
+    data.frame(ratio1 = ratio2, ratio2 = ratio2)
+  } else {
+    expand.grid(ratio1 = ratio1, ratio2 = ratio2, KEEP.OUT.ATTRS = FALSE)
+  }
   pieces <- vector("list", nrow(grid))
   for (i in seq_len(nrow(grid))) {
     fit <- adaptive2in1count(rate1 = rate1, rate2 = rate2,
@@ -48,7 +64,8 @@ adaptive2in1count_power <- function(rate1, rate2, dispersion1, dispersion2,
                              dropout = dropout, dropout_shape = dropout_shape,
                              alpha = alpha, ratio1 = grid$ratio1[i],
                              ratio2 = grid$ratio2[i],
-                             small_endpoint = small_endpoint)
+                             small_endpoint = small_endpoint,
+                             endpoints = endpoints)
     pieces[[i]] <- data.frame(ratio1 = grid$ratio1[i], ratio2 = grid$ratio2[i],
                               cutpoint = fit$results$cutpoint,
                               go_probability = fit$results$go_probability,
@@ -68,6 +85,7 @@ adaptive2in1count_power <- function(rate1, rate2, dispersion1, dispersion2,
                  n3 = expand_group_size(n3, "n3"), window1 = window1,
                  window2 = window2, dropout = dropout,
                  dropout_shape = dropout_shape, alpha = alpha,
-                 small_endpoint = small_endpoint, call = match.call()),
+                 small_endpoint = small_endpoint, endpoints = endpoints,
+                 call = match.call()),
             class = "adaptive2in1count_power")
 }

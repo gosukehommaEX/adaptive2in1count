@@ -26,6 +26,12 @@ print.adaptive2in1count <- function(x, digits = 4, ...) {
               x$rate2, x$dispersion2, x$window2),
       sprintf(" rate ratio %g\n", x$ratio2), sep = "")
   cat(sprintf("Shared frailty shape %g\n", x$shared))
+  cat(sprintf("Endpoints  %s\n",
+              if (identical(x$endpoints, "shared")) {
+                "same event over the two windows"
+              } else {
+                "different events"
+              }))
   cat(sprintf("Follow-up  %s, dropout %s\n", x$dropout_shape,
               paste(format(x$dropout, digits = 3), collapse = "/")))
   cat(sprintf("Patients per group  interim %s, small trial %s, large trial %s\n",

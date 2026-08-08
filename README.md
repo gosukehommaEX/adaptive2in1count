@@ -14,11 +14,19 @@ ratio of the Phase 2 endpoint is compared with a cutpoint. If the observed rate
 ratio is at or below the cutpoint the trial expands into a large trial and the
 final analysis uses the Phase 3 endpoint on all patients, otherwise the trial
 remains small and the final analysis uses the endpoint named by
-`small_endpoint`. Both final analyses are Wald tests of the log rate ratio from
+`small_endpoint`. The two endpoints may be different events or the same event
+read over two windows, which the argument `endpoints` selects. Both final analyses are Wald tests of the log rate ratio from
 a negative binomial model with an offset for the realized exposure, carried out
 at the full one-sided level.
 
 ## The model
+
+The negative binomial is written as in Homma and Daimon (2019), so `dispersion`
+is the shape of the gamma frailty and a count with mean `mu` has variance
+`mu + mu^2 / dispersion`, which is the `size` argument of `rnbinom()`. Tang
+(2015) and Zhu and Lakkis (2014) instead report the variance of the frailty,
+which is the reciprocal, so a dispersion of 2.4 in their sense is
+`dispersion = 1 / 2.4` here.
 
 Counts follow an additive gamma frailty model. Patient `i` carries a frailty
 component shared by the two endpoints, with shape `shared`, and a component
@@ -37,6 +45,38 @@ period correlates the exposures because a patient who leaves stops contributing
 to either count. The second mechanism operates even when the frailty is not
 shared, so ignoring dropout understates the correlation that drives the interim
 decision.
+
+## The two endpoint structures
+
+The argument `endpoints` states how the Phase 2 endpoint relates to the Phase 3
+endpoint.
+
+| `endpoints` | Meaning | Example |
+| --- | --- | --- |
+| `"distinct"` | The two endpoints count different events and are independent given the frailty. Each keeps its own dispersion. | Lesion count and relapse rate in multiple sclerosis |
+| `"shared"` | The two endpoints count the same events over the two windows, so the Phase 2 count is part of the Phase 3 count. One process governs both. | The annualized exacerbation rate read at the interim over a shorter window |
+
+Under `"shared"` a single mixed Poisson process is assumed, so `rate2`,
+`dispersion2` and `ratio2` describe it and the arguments `rate1`,
+`dispersion1`, `shared` and `ratio1` are taken from them. The data behind the
+interim statistic are then part of the data behind either final statistic, so
+the covariance of the two is the variance of the later one, which is the
+canonical joint distribution of group sequential theory. Setting
+`window1 = window2` gives the design whose three analyses read one endpoint
+over one window, for which the correlations reduce to `sqrt(n1 / n2)` and
+`sqrt(n1 / n3)`.
+
+``` r
+adaptive2in1count(
+  rate1 = 1.3, rate2 = 1.3,
+  dispersion1 = 0.8, dispersion2 = 0.8, shared = 0.8,
+  n1 = 80, n2 = 120, n3 = 750,
+  cutpoint = c(0.8, 0.9, 1.0),
+  window1 = 0.5, window2 = 1,
+  dropout = 0.3, dropout_shape = "exponential",
+  endpoints = "shared"
+)
+```
 
 ## Installation
 
@@ -162,7 +202,7 @@ adaptive2in1count_simulate(
 | `design_components()` | Variances, means and correlations of the three test statistics |
 | `follow_up_moments()` | Moments of the exposure of the two endpoints |
 | `information_factor()` | Information per patient for a negative binomial rate |
-| `endpoint_correlation()` | Within-patient correlation of the two endpoints |
+| `endpoint_correlation()` | Within-patient correlation of the two endpoints, for either endpoint structure |
 | `negative_binomial_contrast()` | Log rate ratio of two groups, fitted over many replications at once |
 
 ## Complete follow-up
@@ -183,6 +223,15 @@ Tang Y. Sample size estimation for negative binomial regression comparing rates
 of recurrent events with unequal follow-up time. *Journal of Biopharmaceutical
 Statistics* 2015; 25: 1100-1113.
 <https://doi.org/10.1080/10543406.2014.971167>
+
+Homma G, Daimon T. A simple test for the treatment effect in clinical trials
+with a sequential parallel comparison design and negative binomial outcomes.
+*Pharmaceutical Statistics* 2019; 18: 184-197.
+<https://doi.org/10.1002/pst.1913>
+
+Zhu H, Lakkis H. Sample size calculation for comparing two negative binomial
+rates. *Statistics in Medicine* 2014; 33: 376-387.
+<https://doi.org/10.1002/sim.5947>
 
 Homma G, Daimon T. Sample size calculation for "gold-standard" noninferiority
 trials with fixed margins and negative binomial endpoints. *Statistics in

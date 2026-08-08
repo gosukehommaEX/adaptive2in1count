@@ -1,6 +1,7 @@
-# Generates the operating-characteristic data used by the manuscript figures and
-# tables. Run from the package root. Results are written as .rds files to
-# inst/scripts/data.
+# Generates the operating characteristics shown by the figures and tables of the
+# main text. Run from the package root. Results are written as .rds files to
+# inst/scripts/data. The exhibits of the Supporting Information are produced by
+# the pair of scripts in inst/supplementary.
 
 library(adaptive2in1count)
 
@@ -29,6 +30,7 @@ reference_dropout <- 0.3
 # Design alternative used whenever a single alternative is required.
 alt_ratio1 <- 0.65
 alt_ratio2 <- 0.75
+target_power <- 0.85
 
 # The exponential follow-up period is not defined at a dropout proportion of
 # zero, where the period is complete by definition.
@@ -39,7 +41,7 @@ shape_for <- function(dropout) {
 cutpoints <- seq(0.4, 2, by = 0.05)
 
 ## (1) Maximum type I error rate against the cutpoint.
-message("(1/8) maximum type I error rate against the cutpoint")
+message("(1/9) maximum type I error rate against the cutpoint")
 nuisance_rate1 <- c(1.2, 2, 3.2)
 nuisance_rate2 <- c(0.8, 1.3, 2)
 panel1 <- expand.grid(dispersion2 = c(0.5, 0.8, 1.5),
@@ -62,7 +64,7 @@ typeI_curve <- do.call(rbind, lapply(seq_len(nrow(panel1)), function(i) {
 saveRDS(typeI_curve, file.path(data_dir, "typeI_curve.rds"))
 
 ## (2) Power against the cutpoint, by treatment effect and dropout.
-message("(2/8) power against the cutpoint")
+message("(2/9) power against the cutpoint")
 panel2 <- expand.grid(ratio2 = c(0.7, 0.8), ratio1 = c(0.55, 0.65, 0.75),
                       dropout = c(0, 0.2, 0.4))
 power_curve <- do.call(rbind, lapply(seq_len(nrow(panel2)), function(i) {
@@ -76,43 +78,8 @@ power_curve <- do.call(rbind, lapply(seq_len(nrow(panel2)), function(i) {
 }))
 saveRDS(power_curve, file.path(data_dir, "power_curve.rds"))
 
-## (3) Required size of the large trial and expected sample size against the
-## dropout proportion.
-message("(3/8) required size against the dropout proportion")
-dropout_grid <- seq(0, 0.5, by = 0.05)
-panel3 <- expand.grid(dropout = dropout_grid, ratio1 = c(0.55, 0.65, 0.75),
-                      ratio2 = c(0.7, 0.75, 0.8))
-target_power <- 0.85
-size_curve <- do.call(rbind, lapply(seq_len(nrow(panel3)), function(i) {
-  shape <- shape_for(panel3$dropout[i])
-  cutpoint <- adaptive2in1count_cutpoint(
-    rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
-    dispersion2 = dispersion2, shared = shared, n1 = n1, n2 = n2, n3 = n3,
-    target = 0.9, window1 = window1, window2 = window2,
-    dropout = panel3$dropout[i], dropout_shape = shape,
-    ratio1 = panel3$ratio1[i])$cutpoint
-  solved <- try(adaptive2in1count_size(
-    rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
-    dispersion2 = dispersion2, shared = shared, n1 = n1, n2 = n2,
-    cutpoint = cutpoint, target = target_power, ratio1 = panel3$ratio1[i],
-    ratio2 = panel3$ratio2[i], window1 = window1, window2 = window2,
-    dropout = panel3$dropout[i], dropout_shape = shape, alpha = alpha),
-    silent = TRUE)
-  if (inherits(solved, "try-error")) {
-    return(data.frame(dropout = panel3$dropout[i], ratio1 = panel3$ratio1[i],
-                      ratio2 = panel3$ratio2[i], cutpoint = cutpoint,
-                      required = NA_real_, expected_size = NA_real_,
-                      power = NA_real_))
-  }
-  data.frame(dropout = panel3$dropout[i], ratio1 = panel3$ratio1[i],
-             ratio2 = panel3$ratio2[i], cutpoint = cutpoint,
-             required = sum(solved$n3), expected_size = solved$expected_size,
-             power = solved$power)
-}))
-saveRDS(size_curve, file.path(data_dir, "size_curve.rds"))
-
-## (4) Within-patient correlation of the two endpoints, by its two sources.
-message("(4/8) within-patient correlation of the two endpoints")
+## (3) Within-patient correlation of the two endpoints, by its two sources.
+message("(3/9) within-patient correlation of the two endpoints")
 panel4 <- expand.grid(dropout = seq(0, 0.6, by = 0.05),
                       shared = c(0, 0.23, 0.47, 0.7),
                       window1 = c(0.25, 0.5, 1),
@@ -129,29 +96,39 @@ correlation_endpoint <- do.call(rbind, lapply(seq_len(nrow(panel4)), function(i)
 }))
 saveRDS(correlation_endpoint, file.path(data_dir, "correlation_endpoint.rds"))
 
-## (5) Correlation of the interim statistic with the two final statistics.
-message("(5/8) correlation between the interim and the final statistics")
-panel5 <- expand.grid(n3 = seq(120, 900, by = 20), dropout = c(0, 0.2, 0.4),
-                      endpoint = c("phase2", "phase3"),
-                      stringsAsFactors = FALSE)
-correlation_statistic <- do.call(rbind, lapply(seq_len(nrow(panel5)), function(i) {
-  rho <- adaptive2in1count_correlation(
+## (4) Correlation of the interim statistic with the two final statistics when
+## the two endpoints count the same events over the two windows.
+message("(4/9) correlation between the statistics for a shared endpoint")
+panel9 <- expand.grid(n3 = seq(120, 900, by = 20), dropout = c(0, 0.2, 0.4),
+                      window1 = c(0.5, 1))
+correlation_shared <- do.call(rbind, lapply(seq_len(nrow(panel9)), function(i) {
+  common <- list(rate1 = rate2, rate2 = rate2, dispersion1 = dispersion2,
+                 dispersion2 = dispersion2, shared = dispersion2, n1 = n1,
+                 n2 = n2, n3 = panel9$n3[i], window1 = panel9$window1[i],
+                 window2 = window2, dropout = panel9$dropout[i],
+                 dropout_shape = shape_for(panel9$dropout[i]))
+  rho <- do.call(adaptive2in1count_correlation,
+                 c(common, list(endpoints = "shared")))
+  # The distinct structure at the same rates and windows, so that the two
+  # structures can be read off the same panel.
+  apart <- adaptive2in1count_correlation(
     rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
     dispersion2 = dispersion2, shared = shared, n1 = n1, n2 = n2,
-    n3 = panel5$n3[i], window1 = window1, window2 = window2,
-    dropout = panel5$dropout[i],
-    dropout_shape = shape_for(panel5$dropout[i]),
-    small_endpoint = panel5$endpoint[i])
-  data.frame(n3 = panel5$n3[i], dropout = panel5$dropout[i],
-             endpoint = panel5$endpoint[i], endpoint_correlation = rho$endpoint,
-             interim_small = rho$interim_small,
-             interim_large = rho$interim_large, stringsAsFactors = FALSE)
+    n3 = panel9$n3[i], window1 = panel9$window1[i], window2 = window2,
+    dropout = panel9$dropout[i],
+    dropout_shape = shape_for(panel9$dropout[i]))
+  data.frame(n3 = panel9$n3[i], dropout = panel9$dropout[i],
+             window1 = panel9$window1[i],
+             shared_small = rho$interim_small,
+             shared_large = rho$interim_large,
+             distinct_small = apart$interim_small,
+             distinct_large = apart$interim_large)
 }))
-saveRDS(correlation_statistic, file.path(data_dir, "correlation_statistic.rds"))
+saveRDS(correlation_shared, file.path(data_dir, "correlation_shared.rds"))
 
-## (6) Operating characteristics at cutpoints calibrated to a target
+## (5) Operating characteristics at cutpoints calibrated to a target
 ## probability of expansion.
-message("(6/8) operating characteristics at calibrated cutpoints")
+message("(5/9) operating characteristics at calibrated cutpoints")
 targets <- seq(0.3, 0.95, by = 0.05)
 calibrated <- vapply(targets, function(target) {
   adaptive2in1count_cutpoint(
@@ -181,8 +158,8 @@ operating_table <- data.frame(
   size_alternative = under_alternative$expected_size)
 saveRDS(operating_table, file.path(data_dir, "operating_table.rds"))
 
-## (7) The ceiling that the cutpoint places on the power.
-message("(7/8) the ceiling that the cutpoint places on the power")
+## (6) The ceiling that the cutpoint places on the power.
+message("(6/9) the ceiling that the cutpoint places on the power")
 ceiling_targets <- seq(0.3, 0.95, by = 0.05)
 ceiling_size <- 200000
 ceiling_table <- do.call(rbind, lapply(ceiling_targets, function(target) {
@@ -219,8 +196,8 @@ ceiling_table <- do.call(rbind, lapply(ceiling_targets, function(target) {
 }))
 saveRDS(ceiling_table, file.path(data_dir, "ceiling_table.rds"))
 
-## (8) The normal approximation against simulation.
-message("(8/8) the normal approximation against simulation")
+## (7) The normal approximation against simulation.
+message("(7/9) the normal approximation against simulation")
 validation_cutpoints <- c(0.8, 1.2, 1.6)
 validation_scenarios <- list(
   list(label = "Reference design, global null", ratio1 = 1, ratio2 = 1,
@@ -262,5 +239,122 @@ validation_table <- do.call(rbind, lapply(validation_scenarios, function(z) {
              stringsAsFactors = FALSE)
 }))
 saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
+
+## (8) The normal approximation against simulation for a shared endpoint.
+message("(8/9) the normal approximation for a shared endpoint")
+shared_scenarios <- list(
+  list(label = "Shared endpoint, global null, dropout 0.3", ratio = 1,
+       dropout = reference_dropout, window1 = 0.5),
+  list(label = "Shared endpoint, both windows, dropout 0.3", ratio = 0.75,
+       dropout = reference_dropout, window1 = 0.5),
+  list(label = "Shared endpoint, one window, dropout 0.3", ratio = 0.75,
+       dropout = reference_dropout, window1 = window2))
+validation_shared <- do.call(rbind, lapply(shared_scenarios, function(z) {
+  arguments <- list(rate1 = rate2, rate2 = rate2, dispersion1 = dispersion2,
+                    dispersion2 = dispersion2, shared = dispersion2, n1 = n1,
+                    n2 = n2, n3 = n3, cutpoint = validation_cutpoints,
+                    window1 = z$window1, window2 = window2,
+                    dropout = z$dropout, dropout_shape = shape_for(z$dropout),
+                    alpha = alpha, ratio1 = z$ratio, ratio2 = z$ratio,
+                    endpoints = "shared")
+  approximate <- do.call(adaptive2in1count, arguments)$results
+  known <- do.call(adaptive2in1count_simulate,
+                   c(arguments, list(method = "known", nsim = 10000,
+                                     seed = 20260806)))
+  estimated <- do.call(adaptive2in1count_simulate,
+                       c(arguments, list(method = "estimated", nsim = 10000,
+                                         seed = 20260806)))
+  data.frame(label = z$label, cutpoint = validation_cutpoints,
+             approximate = approximate$rejection, known = known$rejection,
+             estimated = estimated$rejection, se_known = known$se_rejection,
+             se_estimated = estimated$se_rejection, nsim = 10000,
+             stringsAsFactors = FALSE)
+}))
+validation_table <- rbind(validation_table, validation_shared)
+saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
+
+## (9) The tezepelumab development programme in severe asthma, evaluated as a
+## single 2-in-1 trial. Every parameter is a design assumption taken from the
+## two trials rather than a result of either of them. The protocols state the
+## dispersion as the variance of the frailty, in the sense of Tang (2015) and
+## Zhu and Lakkis (2014), so it enters here as its reciprocal.
+message("(9/9) the tezepelumab design")
+real_settings <- list(
+  list(label = "Phase 3 assumptions", rate = 0.9, dispersion = 1 / 2.4,
+       ratio = 0.5),
+  list(label = "Phase 2 assumptions", rate = 0.7, dispersion = 1 / 0.7,
+       ratio = 0.6))
+real_n1 <- 138
+real_n2 <- 138
+real_n3 <- 530
+real_dropout <- 0.1
+real_alpha <- 0.025
+real_power <- 0.9
+real_windows <- c(0.25, 0.5, 1)
+real_targets <- seq(0.3, 0.95, by = 0.05)
+
+real_arguments <- function(z, window1, dropout, n3, ratio = z$ratio) {
+  list(rate1 = z$rate, rate2 = z$rate, dispersion1 = z$dispersion,
+       dispersion2 = z$dispersion, shared = z$dispersion, n1 = real_n1,
+       n2 = real_n2, n3 = n3, window1 = window1, window2 = 1,
+       dropout = dropout, dropout_shape = "uniform", alpha = real_alpha,
+       ratio1 = ratio, ratio2 = ratio, endpoints = "shared")
+}
+
+## (9a) Power against the cutpoint.
+panel_real <- expand.grid(dropout = c(0, 0.1, 0.2), window1 = real_windows,
+                          label = vapply(real_settings, function(z) z$label,
+                                         character(1)),
+                          stringsAsFactors = FALSE)
+real_power_curve <- do.call(rbind, lapply(seq_len(nrow(panel_real)),
+                                          function(i) {
+  z <- real_settings[[match(panel_real$label[i],
+                            vapply(real_settings, function(w) w$label,
+                                   character(1)))]]
+  arguments <- real_arguments(z, panel_real$window1[i], panel_real$dropout[i],
+                              real_n3)
+  fit <- do.call(adaptive2in1count, c(arguments, list(cutpoint = cutpoints)))
+  data.frame(label = panel_real$label[i], dropout = panel_real$dropout[i],
+             window1 = panel_real$window1[i], fit$results,
+             stringsAsFactors = FALSE)
+}))
+saveRDS(real_power_curve, file.path(data_dir, "real_power_curve.rds"))
+
+## (9b) Operating characteristics at calibrated cutpoints, with the ceiling the
+## cutpoint places on the power and the size of the large trial the target power
+## requires.
+real_table <- do.call(rbind, lapply(real_settings, function(z) {
+  arguments <- real_arguments(z, 0.5, real_dropout, real_n3)
+  do.call(rbind, lapply(real_targets, function(target) {
+    cutpoint <- do.call(adaptive2in1count_cutpoint,
+                        c(arguments[setdiff(names(arguments), "alpha")],
+                          list(target = target)))$cutpoint
+    alternative <- do.call(adaptive2in1count,
+                           c(arguments, list(cutpoint = cutpoint)))$results
+    null <- do.call(adaptive2in1count,
+                    c(real_arguments(z, 0.5, real_dropout, real_n3, ratio = 1),
+                      list(cutpoint = cutpoint)))$results
+    ceiling <- do.call(adaptive2in1count,
+                       c(real_arguments(z, 0.5, real_dropout, 200000),
+                         list(cutpoint = cutpoint)))$results
+    solved <- try(do.call(adaptive2in1count_size,
+                          c(arguments[setdiff(names(arguments), "n3")],
+                            list(cutpoint = cutpoint, target = real_power))),
+                  silent = TRUE)
+    data.frame(label = z$label, target = target, cutpoint = cutpoint,
+               type1 = null$rejection, size_null = null$expected_size,
+               power = alternative$rejection,
+               power_small = alternative$rejection_small,
+               ceiling = ceiling$rejection,
+               required = if (inherits(solved, "try-error")) {
+                 NA_real_
+               } else {
+                 sum(solved$n3)
+               },
+               size_alternative = alternative$expected_size,
+               stringsAsFactors = FALSE)
+  }))
+}))
+saveRDS(real_table, file.path(data_dir, "real_table.rds"))
 
 message("data generation complete")

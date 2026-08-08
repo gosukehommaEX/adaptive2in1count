@@ -19,7 +19,8 @@ adaptive2in1count_typeI(
   dropout = 0,
   dropout_shape = c("complete", "uniform", "exponential"),
   alpha = 0.025,
-  small_endpoint = c("phase2", "phase3")
+  small_endpoint = c("phase2", "phase3"),
+  endpoints = c("distinct", "shared")
 )
 }
 \arguments{
@@ -58,7 +59,16 @@ follow-up period, either a single value or a vector of length two.}
 \item{alpha}{One-sided significance level applied at each final analysis.}
 
 \item{small_endpoint}{Endpoint analysed at the final analysis of the small
-trial, either \code{"phase2"} or \code{"phase3"}.}
+trial, either   \code{"phase2"} or \code{"phase3"}.}
+
+\item{endpoints}{Relationship between the two endpoints, either
+\code{"distinct"} or \code{"shared"}. Under \code{"distinct"} the two
+endpoints count different events and are independent given the frailty.
+Under \code{"shared"} they count the same events over the two windows, so
+the Phase 2 count is part of the Phase 3 count. A single process then
+governs both endpoints, and the arguments \code{rate1},
+\code{dispersion1}, \code{shared} and \code{ratio1} are taken from
+\code{rate2}, \code{dispersion2} and \code{ratio2}.}
 }
 \value{
 An object of class \code{adaptive2in1count_typeI} holding the data
