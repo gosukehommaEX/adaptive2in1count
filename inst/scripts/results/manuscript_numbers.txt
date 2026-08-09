@@ -1,0 +1,77 @@
+Numbers quoted by the main text
+Written by inst/scripts/data_generate.R on 2026-08-08
+
+Section 3.2  Type I error rate  (Figure 1)
+  combinations evaluated                     594
+  largest maximum type I error rate          0.0250
+  smallest, small trial on phase2          0.0074
+  smallest, small trial on phase3          0.0206
+  relative change across dropout, median     0.0031
+  relative change across dropout, largest    0.0666
+
+Section 3.3  Power and the cutpoint  (Figure 2, Tables 1 and 2)
+  dip: ratio1 0.55 ratio2 0.8 dropout 0  from 0.771 at C = 0.40 to 0.723 at C = 0.60, largest power 0.844
+  dip: ratio1 0.55 ratio2 0.8 dropout 0.2  from 0.751 at C = 0.40 to 0.694 at C = 0.60, largest power 0.816
+  dip: ratio1 0.55 ratio2 0.8 dropout 0.4  from 0.724 at C = 0.40 to 0.658 at C = 0.60, largest power 0.778
+  dip: ratio1 0.65 ratio2 0.8 dropout 0  from 0.525 at C = 0.40 to 0.509 at C = 0.55, largest power 0.844
+  dip: ratio1 0.65 ratio2 0.8 dropout 0.2  from 0.508 at C = 0.40 to 0.488 at C = 0.55, largest power 0.816
+  dip: ratio1 0.65 ratio2 0.8 dropout 0.4  from 0.486 at C = 0.40 to 0.463 at C = 0.55, largest power 0.778
+  dip: ratio1 0.75 ratio2 0.8 dropout 0  from 0.281 at C = 0.40 to 0.278 at C = 0.50, largest power 0.844
+  dip: ratio1 0.75 ratio2 0.8 dropout 0.2  from 0.272 at C = 0.40 to 0.268 at C = 0.50, largest power 0.815
+  dip: ratio1 0.75 ratio2 0.8 dropout 0.4  from 0.260 at C = 0.40 to 0.255 at C = 0.50, largest power 0.778
+  type I error rate over the calibrated cutpoints, smallest 0.0075 largest 0.0183
+  contribution of the small trial, largest    0.228 smallest 0.000
+  target 0.80: cutpoint 0.815, power 0.770, E(N) under H1 1248, E(N) under H0 505
+  target 0.90: cutpoint 0.917, power 0.856, E(N) under H1 1374, E(N) under H0 702
+  largest ceiling among targets of 0.80 or less 0.8087
+  target 0.85: patients in the large trial for a power of 0.85 2,416
+  target 0.90: patients in the large trial for a power of 0.85 1,454
+  target 0.95: patients in the large trial for a power of 0.85 1,200
+
+Section 3.4  The two sources of correlation  (Figures 3 and 4)
+  window1 0.25: correlation with no shared frailty rises from 0.000 to 0.030
+            with the largest shared frailty, from 0.475 to 0.430
+            with a shared frailty of 0.23 and no dropout 0.156
+  window1 0.5: correlation with no shared frailty rises from 0.000 to 0.061
+            with the largest shared frailty, from 0.564 to 0.546
+            with a shared frailty of 0.23 and no dropout 0.185
+  window1 1: correlation with no shared frailty rises from 0.000 to 0.099
+            with the largest shared frailty, from 0.633 to 0.639
+            with a shared frailty of 0.23 and no dropout 0.208
+  window1 0.5 dropout 0: rho_XY 0.816 (one endpoint) and 0.816 (two endpoints); rho_XZ from 0.695 to 0.254 (one endpoint) and from 0.263 to 0.096 (two endpoints)
+  window1 0.5 dropout 0.2: rho_XY 0.816 (one endpoint) and 0.816 (two endpoints); rho_XZ from 0.706 to 0.258 (one endpoint) and from 0.276 to 0.101 (two endpoints)
+  window1 0.5 dropout 0.4: rho_XY 0.816 (one endpoint) and 0.816 (two endpoints); rho_XZ from 0.718 to 0.262 (one endpoint) and from 0.291 to 0.106 (two endpoints)
+  window1 1 dropout 0: rho_XY 0.816 (one endpoint) and 0.816 (two endpoints); rho_XZ from 0.816 to 0.298 (one endpoint) and from 0.296 to 0.108 (two endpoints)
+  window1 1 dropout 0.2: rho_XY 0.816 (one endpoint) and 0.816 (two endpoints); rho_XZ from 0.816 to 0.298 (one endpoint) and from 0.325 to 0.119 (two endpoints)
+  window1 1 dropout 0.4: rho_XY 0.816 (one endpoint) and 0.816 (two endpoints); rho_XZ from 0.816 to 0.298 (one endpoint) and from 0.356 to 0.130 (two endpoints)
+
+Section 3.5  Accuracy of the normal approximation  (Table 3)
+  cells                                      27
+  largest gap in standard errors, dispersion known     1.27
+  largest gap in standard errors, dispersion estimated 2.32
+  cells in which estimating the dispersion raises the rejection probability 23 of 27
+  small design, smallest and largest increase 0.0005 0.0024
+
+Section 4  The tezepelumab design  (Figure 5, Table 4)
+  Phase 3 assumptions
+    power with the smallest target          0.801
+    type I error rate, smallest and largest 0.0118 0.0246
+    largest target with no attainable size  0.85
+    expected sample size, smallest and largest target 511 1021
+    target 0.90: power 0.915, patients in the large trial for a power of 0.90 504, E(N) 982
+    target 0.95: power 0.953, patients in the large trial for a power of 0.90 400, E(N) 1021
+  Phase 2 assumptions
+    power with the smallest target          0.735
+    type I error rate, smallest and largest 0.0141 0.0237
+    largest target with no attainable size  0.85
+    expected sample size, smallest and largest target 511 1021
+    target 0.90: power 0.914, patients in the large trial for a power of 0.90 632, E(N) 982
+    target 0.95: power 0.953, patients in the large trial for a power of 0.90 488, E(N) 1021
+
+  cutpoint at which the power crosses 0.90
+    Phase 3 assumptions, dropout 0: 0.687 0.691 0.690 for window1 0.25 0.5 0.75
+    Phase 3 assumptions, dropout 0.1: 0.704 0.701 0.696 for window1 0.25 0.5 0.75
+    Phase 3 assumptions, dropout 0.2: 0.719 0.710 0.701 for window1 0.25 0.5 0.75
+    Phase 2 assumptions, dropout 0: 0.830 0.804 0.788 for window1 0.25 0.5 0.75
+    Phase 2 assumptions, dropout 0.1: 0.847 0.813 0.794 for window1 0.25 0.5 0.75
+    Phase 2 assumptions, dropout 0.2: 0.863 0.823 0.799 for window1 0.25 0.5 0.75

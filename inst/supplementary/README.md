@@ -20,6 +20,11 @@ seconds.
 | `figureS1_required_size` | Patients required in the large trial and expected sample size against the dropout proportion |
 | `figureS2_statistic_correlation` | Correlation of the interim statistic with the two final statistics, for two endpoints that count different events |
 | `tableS1_correlation_check.tex` | Closed-form correlations of the three statistics against the correlations of statistics computed from generated patients |
+| `supplementary_numbers.txt` | Every number the Supporting Information quotes, and the numbers of the main text that come from these three files, written as plain text |
+
+Step 4 writes `supplementary_numbers.txt`. The main text quotes the required
+sizes of Figure S1 and the gaps of Table S1, so that file is the reference
+for those sentences as well.
 
 Table S1 measures the approximation that the closed form carries when the
 follow-up period is random. The closed form treats the total exposure as fixed

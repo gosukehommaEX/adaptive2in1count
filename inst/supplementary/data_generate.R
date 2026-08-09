@@ -42,7 +42,7 @@ cutpoints <- seq(0.4, 2, by = 0.05)
 
 ## (1) Required size of the large trial and expected sample size against the
 ## dropout proportion.
-message("(1/3) required size against the dropout proportion")
+message("(1/4) required size against the dropout proportion")
 dropout_grid <- seq(0, 0.5, by = 0.05)
 panel3 <- expand.grid(dropout = dropout_grid, ratio1 = c(0.55, 0.65, 0.75),
                       ratio2 = c(0.7, 0.75, 0.8))
@@ -75,7 +75,7 @@ size_curve <- do.call(rbind, lapply(seq_len(nrow(panel3)), function(i) {
 saveRDS(size_curve, file.path(data_dir, "size_curve.rds"))
 
 ## (2) Correlation of the interim statistic with the two final statistics.
-message("(2/3) correlation between the interim and the final statistics")
+message("(2/4) correlation between the interim and the final statistics")
 panel5 <- expand.grid(n3 = seq(120, 900, by = 20), dropout = c(0, 0.2, 0.4),
                       endpoint = c("phase2", "phase3"),
                       stringsAsFactors = FALSE)
@@ -98,7 +98,7 @@ saveRDS(correlation_statistic, file.path(data_dir, "correlation_statistic.rds"))
 ## statistics and the correlations of statistics computed from generated
 ## patients. The generator repeats the model rather than calling the closed
 ## forms, so the measured discrepancy is an independent check.
-message("(3/3) measured discrepancy of the closed-form correlations")
+message("(3/4) measured discrepancy of the closed-form correlations")
 set.seed(20260808)
 # Fifteen thousand replications leave a Monte Carlo error of about 0.008 on
 # each sample correlation, which is well below the discrepancy being measured.
@@ -183,5 +183,78 @@ correlation_check <- do.call(rbind, lapply(seq_len(nrow(check_settings)),
 }))
 saveRDS(correlation_check, file.path(data_dir, "correlation_check.rds"))
 
+
+## (4) Every number the Supporting Information quotes, written as plain text so
+## that the document can be checked against the evaluation that produced it.
+message("(4/4) numbers quoted by the Supporting Information")
+res_dir <- file.path("inst", "supplementary", "results")
+dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
+report <- file.path(res_dir, "supplementary_numbers.txt")
+con <- file(report, "w")
+say <- function(...) writeLines(paste0(...), con)
+fmt <- function(x, digits = 4) formatC(x, format = "f", digits = digits)
+
+say("Numbers quoted by the Supporting Information")
+say("Written by inst/supplementary/data_generate.R on ", format(Sys.Date()))
+say("")
+
+say("Figure S1  Required size against the dropout proportion")
+for (r1 in unique(size_curve$ratio1)) {
+  for (r2 in unique(size_curve$ratio2)) {
+    block <- size_curve[size_curve$ratio1 == r1 & size_curve$ratio2 == r2, ]
+    block <- block[order(block$dropout), ]
+    # The dropout grid is built by seq(), so a value is matched by distance
+    # rather than by equality.
+    at <- function(value) which.min(abs(block$dropout - value))
+    base <- block$required[at(0)]
+    say("  ratio1 ", r1, " ratio2 ", r2, ": large trial from ",
+        format(base, big.mark = ","), " with no dropout to ",
+        format(block$required[at(0.3)], big.mark = ","),
+        " at a dropout proportion of 0.3 and ",
+        format(block$required[nrow(block)], big.mark = ","), " at ",
+        block$dropout[nrow(block)], ", a rise of ",
+        fmt(100 * (block$required[at(0.3)] / base - 1), 0),
+        " and ", fmt(100 * (block$required[nrow(block)] / base - 1), 0),
+        " per cent")
+    say("            expected sample size from ",
+        format(round(block$expected_size[at(0)]), big.mark = ","), " to ",
+        format(round(block$expected_size[at(0.3)]), big.mark = ","), " and ",
+        format(round(block$expected_size[nrow(block)]), big.mark = ","))
+  }
+}
+say("")
+
+say("Figure S2  Correlation of the interim with the two final statistics")
+for (ep in unique(correlation_statistic$endpoint)) {
+  for (dd in unique(correlation_statistic$dropout)) {
+    block <- correlation_statistic[correlation_statistic$endpoint == ep &
+                                     correlation_statistic$dropout == dd, ]
+    block <- block[order(block$n3), ]
+    say("  small trial on ", ep, ", dropout ", dd, ": rho_XY ",
+        fmt(block$interim_small[1], 3), ", rho_XZ from ",
+        fmt(block$interim_large[1], 3), " to ",
+        fmt(block$interim_large[nrow(block)], 3),
+        ", within-patient correlation ", fmt(block$endpoint_correlation[1], 3))
+  }
+}
+say("")
+
+say("Table S1  Measured gap between the closed forms and the simulation")
+for (i in seq_len(nrow(correlation_check))) {
+  say("  ", correlation_check$structure[i], ", window1 ",
+      correlation_check$window1[i], ", dropout ",
+      correlation_check$dropout[i], ": largest gap ",
+      fmt(correlation_check$discrepancy[i]))
+}
+say("  largest gap under complete follow-up       ",
+    fmt(max(correlation_check$discrepancy[correlation_check$dropout == 0])))
+for (st in unique(correlation_check$structure)) {
+  block <- correlation_check[correlation_check$structure == st &
+                               correlation_check$dropout > 0, ]
+  say("  gaps with dropout, ", st, "                ",
+      fmt(min(block$discrepancy)), " to ", fmt(max(block$discrepancy)))
+}
+close(con)
+message("numbers quoted by the Supporting Information written to ", report)
 
 message("data generation complete")

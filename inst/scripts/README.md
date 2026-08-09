@@ -27,6 +27,12 @@ minutes; the rest of the script takes seconds.
 | `table2_power_limit.tex` | Power against the cutpoint, with the limit the cutpoint places on it |
 | `table3_validation.tex` | Normal approximation against simulation, for a reference design, a small design and a shared endpoint |
 | `table4_real_trial.tex` | The tezepelumab design at calibrated cutpoints, under the assumptions of each of the two trials |
+| `manuscript_numbers.txt` | Every number the main text quotes, written as plain text |
+
+Step 10 writes `manuscript_numbers.txt`, which collects every number the main
+text quotes in the order in which the text uses them. Checking a sentence
+against that file is the same as checking it against the evaluation, so no
+number in the manuscript rests on a transcription.
 
 Each `.tex` file is a complete `table` environment that uses only standard
 LaTeX commands, so it can be uploaded to the manuscript source without further
