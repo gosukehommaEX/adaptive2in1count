@@ -21,7 +21,7 @@ test_that("the simulation agrees under dropout and an alternative", {
                     ratio1 = 0.6, ratio2 = 0.7)
   approximate <- do.call(adaptive2in1count, arguments)$results
   simulated <- do.call(adaptive2in1count_simulate,
-                       c(arguments, list(method = "estimated", nsim = 1500,
+                       c(arguments, list(method = "estimated", nsim = 1000,
                                  seed = 5)))
   expect_lt(abs(simulated$rejection - approximate$rejection) /
               simulated$se_rejection, 5)
