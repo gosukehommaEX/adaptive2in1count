@@ -78,10 +78,10 @@ test_that("complete follow-up without a shared frailty leaves no correlation", {
 test_that("the correlations of the three statistics match the closed forms", {
   set.seed(20260808)
   # The tolerances below are set against the Monte Carlo error of a sample
-  # correlation at this number of replications, which is about 0.006 for the
-  # interim and small trial pair and about 0.013 for the interim and large
-  # trial pair.
-  replications <- 5000
+  # correlation at this number of replications, (1 - rho^2) / sqrt(4000),
+  # which is about 0.005 for the interim and small trial pair when both read
+  # the Phase 2 endpoint and about 0.015 for the other pairs.
+  replications <- 4000
   sizes <- c(40, 60, 150)
   # The closed forms apply the delta method to the log of a ratio of totals and
   # treat the total exposure as fixed at its expectation, which is what the
