@@ -10,10 +10,13 @@ dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Reference design in chronic obstructive pulmonary disease. The Phase 2
 # endpoint is the number of moderate or severe exacerbations over half a year
-# and the Phase 3 endpoint is the annualized exacerbation rate over a year, with
-# rates and dispersions in the range reported for the TRISTAN study by Keene et
-# al. (2007). That study lost 39 per cent of the placebo group before the end of
-# the trial, so a dropout proportion of 0.3 is taken as the reference.
+# and the Phase 3 endpoint is the annualized exacerbation rate over a year. The
+# Phase 3 rate lies within the negative binomial estimates that Keene et al.
+# (2007) report for the TRISTAN study, whose dispersion estimate of 0.46 for the
+# variance of the frailty corresponds to a dispersion of about 2.2 here, so the
+# dispersions below describe a more heterogeneous population. That study lost
+# 39 per cent of the placebo group before the end of the trial, so a dropout
+# proportion of 0.3 is taken as the reference.
 rate1 <- 2
 rate2 <- 1.3
 dispersion1 <- 0.7
@@ -172,6 +175,13 @@ correlation_check <- do.call(rbind, lapply(seq_len(nrow(check_settings)),
     dropout_shape = shape, endpoints = z$structure)$correlation
   data.frame(structure = z$structure, dropout = z$dropout,
              window1 = z$window1, replications = sum(usable),
+             rate1 = if (z$structure == "shared") rate2 else rate1,
+             rate2 = rate2,
+             dispersion1 = if (z$structure == "shared") dispersion2 else
+               dispersion1,
+             dispersion2 = dispersion2,
+             shared = if (z$structure == "shared") dispersion2 else shared,
+             n1 = check_sizes[1], n2 = check_sizes[2], n3 = check_sizes[3],
              observed_small = observed[1, 2], observed_large = observed[1, 3],
              closed_small = expected[["interim_small"]],
              closed_large = expected[["interim_large"]],

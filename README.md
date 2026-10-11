@@ -213,6 +213,13 @@ the final total. It applies only to complete follow-up and only to two
 endpoints that count different events, and its final analyses may be an exact
 conditional test that is free of the nuisance rate or a Wald test.
 
+## Reproduction of published numbers
+
+`inst/reproduce/reproduce_published.R` recomputes sample sizes and power
+published by Tang (2015), by Corren et al. (2017) for the Phase 2 tezepelumab
+trial and in the protocol of the Phase 3 tezepelumab trial (Menzies-Gow et al.
+2021), and writes a verdict for each to `inst/reproduce/results/`.
+
 ## References
 
 Chen C, Anderson K, Mehrotra DV, Rubin EH, Tse A. A 2-in-1 adaptive phase 2/3

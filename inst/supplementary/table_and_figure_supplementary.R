@@ -163,17 +163,28 @@ headS1 <- list(
     "\\multicolumn{2}{c}{$\\rho_{XZ}$}", ""),
   c("Structure", "$\\tau_1$", "$d$", "Closed form", "Simulated",
     "Closed form", "Simulated", "Largest gap"))
+# The design of the check is read from the data, so that the caption cannot
+# drift from the values that were simulated.
+two <- unique(s1[s1$structure == "distinct",
+                 c("rate1", "rate2", "dispersion1", "dispersion2", "shared",
+                   "n1", "n2", "n3")])
+one <- unique(s1[s1$structure == "shared", c("rate2", "dispersion2")])
+stopifnot(nrow(two) == 1, nrow(one) == 1)
 capS1 <- paste(
   "Correlations of the interim statistic with the two final statistics",
   "obtained in closed form and from generated patients. The generator repeats",
   "the model rather than calling the closed forms, and each value uses",
   paste0(format(min(s1$replications), big.mark = ",", scientific = FALSE),
-         " or more replications of a trial that randomises 40 patients per"),
-  "group before the interim analysis, 60 per group in the small trial and 150",
-  "per group in the large trial, at a rate of 2 events per year and dispersion",
-  "0.7 for the Phase 2 endpoint and 1.3 events per year and dispersion 0.8 for",
-  "the Phase 3 endpoint, with a shared frailty shape of 0.35 for two endpoints",
-  "and a single process of 1.3 events per year and dispersion 0.8 for one",
+         " or more replications of a trial that randomizes ", two$n1,
+         " patients per"),
+  paste0("group before the interim analysis, ", two$n2, " per group in the",
+         " small trial and ", two$n3, " per group in the large trial, at a",
+         " rate of ", two$rate1, " events per year and dispersion ",
+         two$dispersion1, " for the Phase 2 endpoint and ", two$rate2,
+         " events per year and dispersion ", two$dispersion2, " for the",
+         " Phase 3 endpoint, with a shared frailty shape of ", two$shared,
+         " for two endpoints and a single process of ", one$rate2,
+         " events per year and dispersion ", one$dispersion2, " for one"),
   "endpoint. The follow-up period is complete when $d = 0$ and exponential",
   "truncated at the year otherwise. The Monte Carlo error of a sample",
   "correlation at this number of replications is about 0.008. The last column",

@@ -10,10 +10,13 @@ dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Reference design in chronic obstructive pulmonary disease. The Phase 2
 # endpoint is the number of moderate or severe exacerbations over half a year
-# and the Phase 3 endpoint is the annualized exacerbation rate over a year, with
-# rates and dispersions in the range reported for the TRISTAN study by Keene et
-# al. (2007). That study lost 39 per cent of the placebo group before the end of
-# the trial, so a dropout proportion of 0.3 is taken as the reference.
+# and the Phase 3 endpoint is the annualized exacerbation rate over a year. The
+# Phase 3 rate lies within the negative binomial estimates that Keene et al.
+# (2007) report for the TRISTAN study, whose dispersion estimate of 0.46 for the
+# variance of the frailty corresponds to a dispersion of about 2.2 here, so the
+# dispersions below describe a more heterogeneous population. That study lost
+# 39 per cent of the placebo group before the end of the trial, so a dropout
+# proportion of 0.3 is taken as the reference.
 rate1 <- 2
 rate2 <- 1.3
 dispersion1 <- 0.7
@@ -490,6 +493,17 @@ for (lab in unique(real_table$label)) {
   say("  ", lab)
   say("    power with the smallest target          ",
       fmt(block$power[which.min(block$target)], 3))
+  # Power of the small trial on its own, which the text compares with the
+  # power of the design.
+  setting <- real_settings[[match(lab, vapply(real_settings,
+                                              function(w) w$label,
+                                              character(1)))]]
+  design <- real_arguments(setting, 0.5, real_dropout, real_n3)
+  parts <- do.call(design_components, design[names(design) != "alpha"])
+  small_alone <- pnorm(-qnorm(1 - real_alpha) -
+                         parts$mean[["small"]] /
+                         sqrt(parts$variance[["small"]]))
+  say("    power of the small trial alone          ", fmt(small_alone, 3))
   say("    type I error rate, smallest and largest ",
       fmt(min(block$type1)), " ", fmt(max(block$type1)))
   say("    largest target with no attainable size  ",

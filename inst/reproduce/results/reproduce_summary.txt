@@ -1,0 +1,39 @@
+Reproduction of published numbers
+Written by inst/reproduce/reproduce_published.R on 2026-10-11
+
+source | item | published | reproduced | verdict | reason
+Tang (2015), Table 2 | w_c 0.2, kappa 1.0, rate 0.4, ratio 0.5, uniform | 138 | 138 | PASS | 
+Tang (2015), Table 2 | w_c 0.2, kappa 1.5, rate 0.8, ratio 0.5, uniform | 115 | 115 | PASS | 
+Tang (2015), Table 2 | w_c 0.2, kappa 1.0, rate 0.4, ratio 0.5, exponential | 139 | 139 | PASS | 
+Tang (2015), Table 2 | w_c 0.2, kappa 1.5, rate 0.8, ratio 0.5, exponential | 115 | 115 | PASS | 
+Tang (2015), Table 2 | w_c 0.2, kappa 1.0, rate 0.4, ratio 0.7, uniform | 454 | 454 | PASS | 
+Tang (2015), Table 2 | w_c 0.2, kappa 1.5, rate 0.8, ratio 0.7, uniform | 400 | 400 | PASS | 
+Tang (2015), Table 2 | w_c 0.2, kappa 1.0, rate 0.4, ratio 0.7, exponential | 456 | 456 | PASS | 
+Tang (2015), Table 2 | w_c 0.2, kappa 1.5, rate 0.8, ratio 0.7, exponential | 401 | 401 | PASS | 
+Tang (2015), Table 2 | w_c 0.3, kappa 1.0, rate 0.4, ratio 0.5, uniform | 145 | 145 | PASS | 
+Tang (2015), Table 2 | w_c 0.3, kappa 1.5, rate 0.8, ratio 0.5, uniform | 119 | 119 | PASS | 
+Tang (2015), Table 2 | w_c 0.3, kappa 1.0, rate 0.4, ratio 0.5, exponential | 146 | 146 | PASS | 
+Tang (2015), Table 2 | w_c 0.3, kappa 1.5, rate 0.8, ratio 0.5, exponential | 120 | 120 | PASS | 
+Tang (2015), Table 2 | w_c 0.3, kappa 1.0, rate 0.4, ratio 0.7, uniform | 476 | 476 | PASS | 
+Tang (2015), Table 2 | w_c 0.3, kappa 1.5, rate 0.8, ratio 0.7, uniform | 414 | 414 | PASS | 
+Tang (2015), Table 2 | w_c 0.3, kappa 1.0, rate 0.4, ratio 0.7, exponential | 481 | 481 | PASS | 
+Tang (2015), Table 2 | w_c 0.3, kappa 1.5, rate 0.8, ratio 0.7, exponential | 418 | 418 | PASS | 
+Tang (2015), Table 2 | w_c 0.4, kappa 1.0, rate 0.4, ratio 0.5, uniform | 152 | 152 | PASS | 
+Tang (2015), Table 2 | w_c 0.4, kappa 1.5, rate 0.8, ratio 0.5, uniform | 124 | 124 | PASS | 
+Tang (2015), Table 2 | w_c 0.4, kappa 1.0, rate 0.4, ratio 0.5, exponential | 155 | 155 | PASS | 
+Tang (2015), Table 2 | w_c 0.4, kappa 1.5, rate 0.8, ratio 0.5, exponential | 126 | 126 | PASS | 
+Tang (2015), Table 2 | w_c 0.4, kappa 1.0, rate 0.4, ratio 0.7, uniform | 499 | 499 | PASS | 
+Tang (2015), Table 2 | w_c 0.4, kappa 1.5, rate 0.8, ratio 0.7, uniform | 429 | 429 | PASS | 
+Tang (2015), Table 2 | w_c 0.4, kappa 1.0, rate 0.4, ratio 0.7, exponential | 510 | 510 | PASS | 
+Tang (2015), Table 2 | w_c 0.4, kappa 1.5, rate 0.8, ratio 0.7, exponential | 437 | 437 | PASS | 
+Tang (2015), Table 1 | kappa 1.00, 2 year(s) | 281 | 281 | PASS | 
+Tang (2015), Table 1 | kappa 1.00, 1 year(s) | 445 | 445 | PASS | 
+Tang (2015), Table 1 | kappa 1.25, 2 year(s) | 303 | 303 | PASS | 
+Tang (2015), Table 1 | kappa 1.25, 1 year(s) | 466 | 466 | PASS | 
+Corren et al. (2017) | patients per group, 0.7 read as the variance | 138 | 138 | PASS | 
+Corren et al. (2017) | patients per group, 0.7 read as the shape | 138 | 176 | INFO | the other reading of the dispersion does not give 138
+Menzies-Gow et al. (2021), protocol | power against a 50 per cent reduction, 2.4 read as the variance | > 0.99 | 0.9982 | PASS | 
+Menzies-Gow et al. (2021), protocol | minimum detectable reduction, 2.4 read as the variance | 0.27 | 0.2666 | PASS | 
+Menzies-Gow et al. (2021), protocol | minimum detectable reduction, 2.4 read as the shape | 0.27 | 0.1881 | INFO | the other reading of the dispersion does not give 27 per cent
+
+PASS 31, EXPLAINED 0, INFO 2, FAIL 0

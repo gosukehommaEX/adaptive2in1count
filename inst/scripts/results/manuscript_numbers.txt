@@ -1,5 +1,5 @@
 Numbers quoted by the main text
-Written by inst/scripts/data_generate.R on 2026-08-08
+Written by inst/scripts/data_generate.R on 2026-10-11
 
 Section 3.2  Type I error rate  (Figure 1)
   combinations evaluated                     594
@@ -55,6 +55,7 @@ Section 3.5  Accuracy of the normal approximation  (Table 3)
 Section 4  The tezepelumab design  (Figure 5, Table 4)
   Phase 3 assumptions
     power with the smallest target          0.801
+    power of the small trial alone          0.801
     type I error rate, smallest and largest 0.0118 0.0246
     largest target with no attainable size  0.85
     expected sample size, smallest and largest target 511 1021
@@ -62,6 +63,7 @@ Section 4  The tezepelumab design  (Figure 5, Table 4)
     target 0.95: power 0.953, patients in the large trial for a power of 0.90 400, E(N) 1021
   Phase 2 assumptions
     power with the smallest target          0.735
+    power of the small trial alone          0.729
     type I error rate, smallest and largest 0.0141 0.0237
     largest target with no attainable size  0.85
     expected sample size, smallest and largest target 511 1021

@@ -1,5 +1,5 @@
 Numbers quoted by the Supporting Information
-Written by inst/supplementary/data_generate.R on 2026-08-08
+Written by inst/supplementary/data_generate.R on 2026-10-11
 
 Figure S1  Required size against the dropout proportion
   ratio1 0.55 ratio2 0.7: large trial from 784 with no dropout to 902 at a dropout proportion of 0.3 and 1,018 at 0.5, a rise of 15 and 30 per cent

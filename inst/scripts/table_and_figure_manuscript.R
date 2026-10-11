@@ -59,7 +59,7 @@ scale_cutpoint <- scale_x_continuous(limits = c(0.4, 2),
 # additional package is required.
 write_tex_table <- function(mat, headers, aligns, file, caption, label,
                             clines = character(0), size = "\\small",
-                            colsep = "4pt") {
+                            colsep = "4pt", stretch = NULL) {
   con <- file(file, "w")
   on.exit(close(con))
   caption <- sub("[.[:space:]]*$", "", caption)
@@ -69,6 +69,9 @@ write_tex_table <- function(mat, headers, aligns, file, caption, label,
   writeLines(paste0("\\label{", label, "}"), con)
   writeLines("\\vspace{0.6em}", con)
   writeLines(size, con)
+  if (!is.null(stretch)) {
+    writeLines(paste0("\\renewcommand{\\arraystretch}{", stretch, "}"), con)
+  }
   writeLines(paste0("\\setlength{\\tabcolsep}{", colsep, "}"), con)
   writeLines(paste0("\\begin{tabular}{", aligns, "}"), con)
   writeLines("\\hline", con)
@@ -241,7 +244,7 @@ cap1 <- paste(
   "$\\nu_2 = 0.8$ and observation window $\\tau_2 = 1$ year. The shape of the",
   "frailty component shared by the two endpoints is $\\gamma = 0.4$. The",
   "follow-up period is exponential truncated at $\\tau_2$ with dropout",
-  "proportion $d = 0.3$. The trial randomises 80 patients per group before the",
+  "proportion $d = 0.3$. The trial randomizes 80 patients per group before the",
   "interim analysis, 120 per group in the small trial and 750 per group in the",
   "large trial, and the Wald test is applied at a one-sided significance level",
   "of 0.025. The trial expands when the observed rate ratio of the Phase 2",
@@ -317,7 +320,7 @@ head3 <- list(
 cap3 <- paste(
   "Rejection probability of the 2-in-1 adaptive design obtained from the normal",
   "approximation and by simulation, for the design of",
-  "Table~\\ref{tab:operating} and for a small design that randomises 30",
+  "Table~\\ref{tab:operating} and for a small design that randomizes 30",
   "patients per group before the interim analysis, 45 per group in the small",
   "trial and 200 per group in the large trial. The column headed normal is the",
   "value returned by the closed-form evaluation. The simulated columns fit the",
@@ -341,7 +344,7 @@ write_tex_table(mat3, head3, "lrrrrrr",
                 file.path(res_dir, "table3_validation.tex"),
                 cap3, "tab:validation",
                 clines = c("\\cline{4-5}\\cline{6-7}", ""),
-                size = "\\footnotesize", colsep = "3pt")
+                size = "\\footnotesize", colsep = "3pt", stretch = "0.85")
 
 ## Table 4. The tezepelumab design at calibrated cutpoints.
 t4 <- readRDS(file.path(data_dir, "real_table.rds"))
@@ -357,16 +360,18 @@ head4 <- list(
   c("Assumptions", "Target", "$C$", "Type I", "Power", "Small", "Limit",
     "$N$ for 0.9", "$E(N)$"))
 cap4 <- paste(
-  "The tezepelumab programme in severe asthma evaluated as a single 2-in-1",
+  "The tezepelumab program in severe asthma evaluated as a single 2-in-1",
   "trial. The annualized rate of asthma exacerbations is read at an interim",
   "analysis over half a year and at the final analysis over a year, so one",
   "endpoint serves all three analyses. The Phase 3 assumptions are those of the",
   "protocol of the confirmatory trial, a placebo rate of 0.9 events per year, a",
-  "dispersion parameter of 2.4 in the sense of Tang and of Zhu and Lakkis and",
+  "dispersion parameter of 2.4 in the sense of Keene et al. and of Zhu and",
+  "Lakkis and",
   "therefore $\\nu = 1 / 2.4$ here, a rate ratio of 0.5 and a dropout",
   "proportion of 0.1 spread uniformly over the year. The Phase 2 assumptions",
   "are those of the earlier trial, a placebo rate of 0.7 events per year,",
-  "$\\nu = 1 / 0.7$ and a rate ratio of 0.6. The trial randomises 138 patients",
+  "$\\nu = 1 / 0.7$, a rate ratio of 0.6 and the same dropout proportion.",
+  "The trial randomizes 138 patients",
   "per group before the interim analysis and in the small trial and 530 per",
   "group in the large trial, and the Wald test is applied at a one-sided",
   "significance level of 0.025. The interim analysis reads the endpoint before",
@@ -381,6 +386,6 @@ write_tex_table(mat4, head4, "lrrrrrrrr",
                 file.path(res_dir, "table4_real_trial.tex"),
                 cap4, "tab:real",
                 clines = c("\\cline{2-3}\\cline{5-8}", ""),
-                size = "\\footnotesize", colsep = "3pt")
+                size = "\\footnotesize", colsep = "3pt", stretch = "0.85")
 
 message("exhibits of the main text written to ", res_dir)
