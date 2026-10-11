@@ -1,3 +1,8 @@
+quiet_print <- function(x, ...) {
+  lines <- capture.output(returned <- withVisible(print(x, ...)))
+  list(lines = lines, visible = returned$visible, value = returned$value)
+}
+
 test_that("the exact print method still works", {
   fit <- adaptive2in1count_exact(rate1 = 2, rate2 = 0.5, dispersion1 = 0.6,
                                  dispersion2 = 1.2, shared = 0.4, n1 = 20,

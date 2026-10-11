@@ -1,3 +1,8 @@
+quiet_print <- function(x, ...) {
+  lines <- capture.output(returned <- withVisible(print(x, ...)))
+  list(lines = lines, visible = returned$visible, value = returned$value)
+}
+
 test_that("the type I error print method reports the overall maximum", {
   size <- adaptive2in1count_typeI(rate1 = c(2, 2.6), rate2 = 1.3,
                                   dispersion1 = 0.8, dispersion2 = 0.8,
