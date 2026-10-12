@@ -109,6 +109,17 @@ correlation_endpoint <- do.call(rbind, lapply(seq_len(nrow(panel4)), function(i)
              )$correlation[["interim_large"]])
 }))
 saveRDS(correlation_endpoint, file.path(data_dir, "correlation_endpoint.rds"))
+# A setting outside Figure 3 in which rho_0 exceeds the correlation of the
+# counts: a short interim window, a shared component at its upper bound and
+# higher rates.
+ordering_example <- list(rate1 = 5, rate2 = 5, dispersion1 = 0.7,
+                         dispersion2 = 0.8, shared = 0.7, window1 = 0.25,
+                         window2 = window2, dropout = 0.4,
+                         dropout_shape = "exponential")
+ordering_counts <- do.call(endpoint_correlation, ordering_example)
+ordering_statistic <- do.call(
+  design_components, c(ordering_example, list(n1 = 100, n2 = 100, n3 = 100))
+)$correlation[["interim_large"]]
 
 ## (4) Correlation of the interim statistic with the two final statistics when
 ## the two endpoints count the same events over the two windows.
@@ -290,6 +301,28 @@ validation_shared <- do.call(rbind, lapply(shared_scenarios, function(z) {
 }))
 validation_table <- rbind(validation_table, validation_shared)
 saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
+
+## (8b) The shared scenario under the global null repeated with three further
+## seeds. Table 3 keeps the seed fixed in advance, and the repetition shows
+## whether the largest discrepancy of the table, which falls in this scenario,
+## recurs.
+message("(8b/10) the shared scenario under the global null with further seeds")
+rerun_seeds <- c(20261101, 20261102, 20261103)
+shared_rerun <- do.call(rbind, lapply(rerun_seeds, function(s) {
+  z <- shared_scenarios[[1]]
+  arguments <- list(rate1 = rate2, rate2 = rate2, dispersion1 = dispersion2,
+                    dispersion2 = dispersion2, shared = dispersion2, n1 = n1,
+                    n2 = n2, n3 = n3, cutpoint = validation_cutpoints,
+                    window1 = z$window1, window2 = window2,
+                    dropout = z$dropout, dropout_shape = shape_for(z$dropout),
+                    alpha = alpha, ratio1 = z$ratio, ratio2 = z$ratio,
+                    endpoints = "shared")
+  known <- do.call(adaptive2in1count_simulate,
+                   c(arguments, list(method = "known", nsim = z$nsim,
+                                     seed = s)))
+  data.frame(seed = s, cutpoint = validation_cutpoints,
+             known = known$rejection, nsim = known$nsim)
+}))
 
 ## (9) The tezepelumab development programme in severe asthma, evaluated as a
 ## single 2-in-1 trial. Every parameter is a design assumption taken from the
@@ -511,6 +544,26 @@ for (w in unique(correlation_shared$window1)) {
         fmt(block$distinct_large[nrow(block)], 3), " (two endpoints)")
   }
 }
+excess <- correlation_endpoint$statistic - correlation_endpoint$correlation
+say("  rho_0 against the correlation of the counts over Figure 3: largest ",
+    "excess of rho_0 ", formatC(max(excess), format = "e", digits = 1),
+    ", points with rho_0 above at four decimals ",
+    sum(round(correlation_endpoint$statistic, 4) >
+          round(correlation_endpoint$correlation, 4)),
+    " of ", nrow(correlation_endpoint),
+    ", largest excess of the counts ", fmt(max(-excess), 3))
+say("  ordering example, rates 5, dispersions 0.7 and 0.8, shared 0.7, ",
+    "window1 0.25, exponential dropout 0.4: counts ",
+    fmt(ordering_counts, 3), ", rho_0 ", fmt(ordering_statistic, 3))
+for (w in sort(unique(correlation_endpoint$window1))) {
+  top <- correlation_endpoint[
+    abs(correlation_endpoint$window1 - w) < 1e-8 &
+      abs(correlation_endpoint$dispersion2 - dispersion2) < 1e-8 &
+      abs(correlation_endpoint$shared - max(correlation_endpoint$shared)) <
+        1e-8, ]
+  say("  largest correlation of the counts at the largest shared frailty, ",
+      "window1 ", w, ": ", fmt(max(top$correlation), 3))
+}
 say("")
 
 say("Section 3.5  Accuracy of the normal approximation  (Table 3)")
@@ -528,6 +581,31 @@ small_block <- validation_table[grepl("^Small", validation_table$label), ]
 say("  small design, smallest and largest increase ",
     fmt(min(small_block$estimated - small_block$known)), " ",
     fmt(max(small_block$estimated - small_block$known)))
+gap_known <- abs(validation_table$known - validation_table$approximate) /
+  validation_table$se_known
+gap_estimated <- abs(validation_table$estimated -
+                       validation_table$approximate) /
+  validation_table$se_estimated
+say("  largest gap, dispersion known, in ",
+    validation_table$label[which.max(gap_known)], " at C = ",
+    fmt(validation_table$cutpoint[which.max(gap_known)], 1))
+say("  largest gap, dispersion estimated, in ",
+    validation_table$label[which.max(gap_estimated)], " at C = ",
+    fmt(validation_table$cutpoint[which.max(gap_estimated)], 1))
+rerun_pooled <- vapply(validation_cutpoints, function(cc) {
+  part <- shared_rerun[abs(shared_rerun$cutpoint - cc) < 1e-8, ]
+  sum(part$known * part$nsim) / sum(part$nsim)
+}, numeric(1))
+rerun_total <- sum(shared_rerun$nsim[abs(shared_rerun$cutpoint -
+                                           validation_cutpoints[1]) < 1e-8])
+rerun_closed <- validation_table$approximate[
+  validation_table$label == "Shared endpoint, global null, dropout 0.3"]
+say("  shared endpoint, global null, ", length(rerun_seeds),
+    " further seeds and ",
+    format(rerun_total, big.mark = ",", scientific = FALSE),
+    " replications, dispersion known: ",
+    paste(fmt(rerun_pooled), collapse = " "), "; closed form ",
+    paste(fmt(rerun_closed), collapse = " "))
 say("")
 
 say("Section 4  The tezepelumab design  (Figure 5, Table 4)")
