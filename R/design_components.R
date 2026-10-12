@@ -9,15 +9,16 @@
 #' patients.
 #'
 #' The variance of a log rate is the reciprocal of the number of patients times
-#' the information per patient of Tang (2015). How the covariance between two
-#' statistics is obtained depends on \code{endpoints}. When the two endpoints
-#' count different events, the covariance follows from the frailty they share
-#' and from the follow-up period they share, and the second contribution is
-#' present whenever the follow-up period is random. When they count the same
-#' events over the two windows, the data behind the earlier statistic are part
-#' of the data behind the later one, so the covariance equals the variance of
-#' the later statistic, which is the canonical joint distribution of group
-#' sequential theory.
+#' the information per patient of Tang (2015). The covariance between two
+#' statistics computed on shared patients follows from the covariance factor of
+#' \code{coupling_factor()}. Each analysis conditions on the realised exposure
+#' through its offset, so only the covariance of the two counts given the
+#' exposure contributes. When the two endpoints count different events this is
+#' the frailty they share, and the follow-up period they share does not
+#' correlate the statistics. When they count the same events over the two
+#' windows, the data behind the earlier statistic are part of the data behind
+#' the later one, so the covariance equals the variance of the later statistic,
+#' which is the canonical joint distribution of group sequential theory.
 #'
 #'
 #' The negative binomial is written as in Homma and Daimon (2019), so
@@ -54,8 +55,8 @@
 #'   \code{rate2}, \code{dispersion2} and \code{ratio2}.
 #' @return A list with the three variances in \code{variance}, the three means
 #'   in \code{mean}, the two correlations in \code{correlation}, the information
-#'   per patient in \code{information}, and the within-patient covariance factor
-#'   of the two endpoints in \code{coupling}.
+#'   per patient in \code{information}, and the covariance factor of
+#'   \code{coupling_factor()} for each group in \code{coupling}.
 #' @export
 #' @examples
 #' design_components(rate1 = 2.6, rate2 = 1.3, dispersion1 = 0.8,
@@ -112,12 +113,9 @@ design_components <- function(rate1, rate2, dispersion1, dispersion2, shared,
                                               window[k], window2, dropout[g],
                                               dropout_shape)
     }
-    moments <- follow_up_moments(window1, window2, dropout[g], dropout_shape)
-    coupling[g] <- moments$inflation *
-      (1 + shared / (dispersion1 * dispersion2)) - 1
-    if (endpoints == "shared") {
-      coupling[g] <- coupling[g] + 1 / (rate[g, 2] * moments$second)
-    }
+    coupling[g] <- coupling_factor(rate[g, 1], rate[g, 2], dispersion1,
+                                   dispersion2, shared, window1, window2,
+                                   dropout[g], dropout_shape, endpoints)
   }
   small_column <- if (small_endpoint == "phase2") 1L else 2L
   variance <- c(interim = sum(1 / (n1 * information[, 1])),
@@ -125,9 +123,9 @@ design_components <- function(rate1, rate2, dispersion1, dispersion2, shared,
                 large = sum(1 / (n3 * information[, 2])))
   # When the two endpoints count the same events, the data behind the interim
   # statistic are part of the data behind either final statistic, so the
-  # covariance is the variance of the final statistic. Otherwise only the
-  # patients shared by the two analyses contribute, through the coupling
-  # factor.
+  # covariance is the variance of the final statistic, which is also what the
+  # covariance factor gives in that case. Otherwise only the patients shared by
+  # the two analyses contribute, through the covariance factor.
   covariance_small <- if (endpoints == "shared" ||
                           small_endpoint == "phase2") {
     variance[["small"]]

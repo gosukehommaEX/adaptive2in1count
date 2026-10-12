@@ -68,8 +68,8 @@ a single process governs both and the arguments \code{rate1},
 \value{
 A list with the three variances in \code{variance}, the three means
 in \code{mean}, the two correlations in \code{correlation}, the information
-per patient in \code{information}, and the within-patient covariance factor
-of the two endpoints in \code{coupling}.
+per patient in \code{information}, and the covariance factor of
+\code{coupling_factor()} for each group in \code{coupling}.
 }
 \description{
 Assembles the quantities that the normal approximation of the 2-in-1 design
@@ -82,15 +82,16 @@ patients.
 }
 \details{
 The variance of a log rate is the reciprocal of the number of patients times
-the information per patient of Tang (2015). How the covariance between two
-statistics is obtained depends on \code{endpoints}. When the two endpoints
-count different events, the covariance follows from the frailty they share
-and from the follow-up period they share, and the second contribution is
-present whenever the follow-up period is random. When they count the same
-events over the two windows, the data behind the earlier statistic are part
-of the data behind the later one, so the covariance equals the variance of
-the later statistic, which is the canonical joint distribution of group
-sequential theory.
+the information per patient of Tang (2015). The covariance between two
+statistics computed on shared patients follows from the covariance factor of
+\code{coupling_factor()}. Each analysis conditions on the realised exposure
+through its offset, so only the covariance of the two counts given the
+exposure contributes. When the two endpoints count different events this is
+the frailty they share, and the follow-up period they share does not
+correlate the statistics. When they count the same events over the two
+windows, the data behind the earlier statistic are part of the data behind
+the later one, so the covariance equals the variance of the later statistic,
+which is the canonical joint distribution of group sequential theory.
 
 The negative binomial is written as in Homma and Daimon (2019), so
 \code{dispersion1} and \code{dispersion2} are the shapes of the gamma

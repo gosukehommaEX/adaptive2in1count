@@ -10,8 +10,8 @@ independent of these.
    as `.pdf` and `.eps` and the table as `.tex` to `results/`.
 
 Step 3 of `data_generate.R` generates fifteen thousand replicate trials for
-each of eight settings and takes a few minutes; the rest of the script takes
-seconds.
+each of eight settings and fits the negative binomial model to each of them,
+which takes several minutes; the rest of the script takes seconds.
 
 ## Exhibits
 
@@ -26,11 +26,12 @@ Step 4 writes `supplementary_numbers.txt`. The main text quotes the required
 sizes of Figure S1 and the gaps of Table S1, so that file is the reference
 for those sentences as well.
 
-Table S1 measures the approximation that the closed form carries when the
-follow-up period is random. The closed form treats the total exposure as fixed
-at its expectation, which is exact under complete follow-up and an
-approximation otherwise, and the table reports the size of the gap rather than
-bounding it.
+Table S1 compares the closed-form correlations of the three statistics with
+the correlations of statistics computed from generated patients. Each simulated
+statistic is the log rate ratio of the negative binomial model with an offset
+for the exposure and the dispersion held at its design value, which is the
+analysis the closed forms describe, and the table reports each gap in units of
+its Monte Carlo standard error.
 
 ## Conventions
 

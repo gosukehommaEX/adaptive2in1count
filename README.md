@@ -39,12 +39,18 @@ window with the same `dropout` as the proportion who leave, following Tang
 (2015) and Homma and Daimon (2021). Both random forms reduce to complete
 follow-up when `dropout` is zero.
 
-The two endpoints of a patient are therefore correlated through two mechanisms.
+The two counts of a patient are therefore correlated through two mechanisms.
 The shared frailty correlates the underlying event rates, and a random follow-up
 period correlates the exposures because a patient who leaves stops contributing
-to either count. The second mechanism operates even when the frailty is not
-shared, so ignoring dropout understates the correlation that drives the interim
-decision.
+to either count. Only the first mechanism reaches the test statistics. Each
+analysis conditions on the realized exposure through its offset, so the score
+residual `count - rate * exposure` has mean zero given the exposure and the
+covariance of the two exposures drops out. `coupling_factor()` returns the
+resulting covariance factor of the two estimated log rates, which is zero when
+no frailty is shared even if patients drop out, and `endpoint_correlation()`
+returns the correlation of the counts themselves, which includes the exposure
+term. Using the correlation of the counts in place of the covariance factor
+would overstate the correlation that drives the interim decision.
 
 ## The two endpoint structures
 
@@ -200,6 +206,7 @@ adaptive2in1count_simulate(
 | `adaptive2in1count_correlation()` | Correlations between the interim and the two final statistics |
 | `adaptive2in1count_simulate()` | Simulated operating characteristics |
 | `design_components()` | Variances, means and correlations of the three test statistics |
+| `coupling_factor()` | Covariance factor of two log rates estimated on shared patients |
 | `follow_up_moments()` | Moments of the exposure of the two endpoints |
 | `information_factor()` | Information per patient for a negative binomial rate |
 | `endpoint_correlation()` | Within-patient correlation of the two endpoints, for either endpoint structure |

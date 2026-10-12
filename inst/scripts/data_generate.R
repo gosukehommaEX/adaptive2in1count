@@ -81,7 +81,8 @@ power_curve <- do.call(rbind, lapply(seq_len(nrow(panel2)), function(i) {
 }))
 saveRDS(power_curve, file.path(data_dir, "power_curve.rds"))
 
-## (3) Within-patient correlation of the two endpoints, by its two sources.
+## (3) Within-patient correlation of the two counts, by its two sources, and
+## the correlation of the two estimated log rate ratios on the same patients.
 message("(3/10) within-patient correlation of the two endpoints")
 panel4 <- expand.grid(dropout = seq(0, 0.6, by = 0.05),
                       shared = c(0, 0.23, 0.47, 0.7),
@@ -95,7 +96,17 @@ correlation_endpoint <- do.call(rbind, lapply(seq_len(nrow(panel4)), function(i)
                dispersion2 = panel4$dispersion2[i], shared = panel4$shared[i],
                window1 = panel4$window1[i], window2 = window2,
                dropout = panel4$dropout[i],
-               dropout_shape = shape_for(panel4$dropout[i])))
+               dropout_shape = shape_for(panel4$dropout[i])),
+             # With the same patients behind the interim and the large trial
+             # statistics, their correlation is rho_0 of the article. The
+             # number of patients cancels, so any common value serves.
+             statistic = design_components(
+               rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
+               dispersion2 = panel4$dispersion2[i], shared = panel4$shared[i],
+               n1 = 100, n2 = 100, n3 = 100, window1 = panel4$window1[i],
+               window2 = window2, dropout = panel4$dropout[i],
+               dropout_shape = shape_for(panel4$dropout[i])
+             )$correlation[["interim_large"]])
 }))
 saveRDS(correlation_endpoint, file.path(data_dir, "correlation_endpoint.rds"))
 
@@ -202,12 +213,16 @@ saveRDS(ceiling_table, file.path(data_dir, "ceiling_table.rds"))
 ## (7) The normal approximation against simulation.
 message("(7/10) the normal approximation against simulation")
 validation_cutpoints <- c(0.8, 1.2, 1.6)
+# A type I error rate near 0.025 has a binomial standard error of about 0.0005
+# at one hundred thousand replications, so the scenarios under the global null
+# use that number and the scenarios under the alternative use fewer.
+null_nsim <- 100000
 validation_scenarios <- list(
   list(label = "Reference design, global null", ratio1 = 1, ratio2 = 1,
-       dropout = 0, sizes = c(n1, n2, n3), nsim = 10000),
+       dropout = 0, sizes = c(n1, n2, n3), nsim = null_nsim),
   list(label = "Reference design, global null, dropout 0.3", ratio1 = 1,
        ratio2 = 1, dropout = reference_dropout, sizes = c(n1, n2, n3),
-       nsim = 10000),
+       nsim = null_nsim),
   list(label = "Reference design, both endpoints, dropout 0.3",
        ratio1 = alt_ratio1, ratio2 = alt_ratio2, dropout = reference_dropout,
        sizes = c(n1, n2, n3), nsim = 10000),
@@ -216,7 +231,7 @@ validation_scenarios <- list(
        sizes = c(n1, n2, n3), nsim = 10000),
   list(label = "Small design, global null, dropout 0.3", ratio1 = 1,
        ratio2 = 1, dropout = reference_dropout, sizes = c(30, 45, 200),
-       nsim = 50000),
+       nsim = null_nsim),
   list(label = "Small design, both endpoints, dropout 0.3",
        ratio1 = alt_ratio1, ratio2 = alt_ratio2, dropout = reference_dropout,
        sizes = c(30, 45, 200), nsim = 50000))
@@ -247,11 +262,11 @@ saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
 message("(8/10) the normal approximation for a shared endpoint")
 shared_scenarios <- list(
   list(label = "Shared endpoint, global null, dropout 0.3", ratio = 1,
-       dropout = reference_dropout, window1 = 0.5),
+       dropout = reference_dropout, window1 = 0.5, nsim = null_nsim),
   list(label = "Shared endpoint, both windows, dropout 0.3", ratio = 0.75,
-       dropout = reference_dropout, window1 = 0.5),
+       dropout = reference_dropout, window1 = 0.5, nsim = 10000),
   list(label = "Shared endpoint, one window, dropout 0.3", ratio = 0.75,
-       dropout = reference_dropout, window1 = window2))
+       dropout = reference_dropout, window1 = window2, nsim = 10000))
 validation_shared <- do.call(rbind, lapply(shared_scenarios, function(z) {
   arguments <- list(rate1 = rate2, rate2 = rate2, dispersion1 = dispersion2,
                     dispersion2 = dispersion2, shared = dispersion2, n1 = n1,
@@ -262,15 +277,15 @@ validation_shared <- do.call(rbind, lapply(shared_scenarios, function(z) {
                     endpoints = "shared")
   approximate <- do.call(adaptive2in1count, arguments)$results
   known <- do.call(adaptive2in1count_simulate,
-                   c(arguments, list(method = "known", nsim = 10000,
+                   c(arguments, list(method = "known", nsim = z$nsim,
                                      seed = 20260806)))
   estimated <- do.call(adaptive2in1count_simulate,
-                       c(arguments, list(method = "estimated", nsim = 10000,
+                       c(arguments, list(method = "estimated", nsim = z$nsim,
                                          seed = 20260806)))
   data.frame(label = z$label, cutpoint = validation_cutpoints,
              approximate = approximate$rejection, known = known$rejection,
              estimated = estimated$rejection, se_known = known$se_rejection,
-             se_estimated = estimated$se_rejection, nsim = 10000,
+             se_estimated = estimated$se_rejection, nsim = z$nsim,
              stringsAsFactors = FALSE)
 }))
 validation_table <- rbind(validation_table, validation_shared)
@@ -428,6 +443,24 @@ for (tg in c(0.8, 0.9)) {
       fmt(row$power, 3), ", E(N) under H1 ", fmt(row$size_alternative, 0),
       ", E(N) under H0 ", fmt(row$size_null, 0))
 }
+# Partial null hypothesis: the Phase 2 endpoint carries its design effect and
+# the Phase 3 endpoint none. With the small trial on the Phase 2 endpoint only a
+# rejection by the large trial is false, and with the small trial on the Phase
+# 3 endpoint every rejection is.
+at_target <- which.min(abs(operating_table$target - 0.9))
+partial_cutpoint <- operating_table$cutpoint[at_target]
+partial <- vapply(c("phase2", "phase3"), function(ep) {
+  out <- do.call(adaptive2in1count,
+                 c(common[setdiff(names(common), "cutpoint")],
+                   list(cutpoint = partial_cutpoint, ratio1 = alt_ratio1,
+                        ratio2 = 1, small_endpoint = ep)))$results
+  if (ep == "phase2") out$rejection_large else out$rejection
+}, numeric(1))
+say("  partial null, Phase 2 ratio ", alt_ratio1, " and Phase 3 ratio 1, ",
+    "at C = ", fmt(partial_cutpoint, 3), ": false rejection with the small ",
+    "trial on ",
+    "phase2 ", fmt(partial[["phase2"]]), " and on phase3 ",
+    fmt(partial[["phase3"]]))
 say("  largest ceiling among targets of 0.80 or less ",
     fmt(max(ceiling_table$ceiling[ceiling_table$target <= 0.8]), 4))
 attained <- ceiling_table[!is.na(ceiling_table$required), ]
@@ -453,6 +486,16 @@ for (w in unique(correlation_endpoint$window1)) {
   middle <- block[abs(block$shared - 0.23) < 1e-8 & block$dropout == 0, ]
   say("            with a shared frailty of 0.23 and no dropout ",
       fmt(middle$correlation[1], 3))
+  say("            statistics with no shared frailty, largest absolute value ",
+      fmt(max(abs(none$statistic)), 3))
+  for (sh in sort(unique(block$shared[block$shared > 0]))) {
+    part <- block[abs(block$shared - sh) < 1e-8, ]
+    part <- part[order(part$dropout), ]
+    say("            statistics with a shared frailty of ", sh, ", from ",
+        fmt(part$statistic[1], 3), " to ", fmt(part$statistic[nrow(part)], 3),
+        "; counts from ", fmt(part$correlation[1], 3), " to ",
+        fmt(part$correlation[nrow(part)], 3))
+  }
 }
 for (w in unique(correlation_shared$window1)) {
   for (dd in unique(correlation_shared$dropout)) {
@@ -521,8 +564,26 @@ for (lab in unique(real_table$label)) {
   }
 }
 say("")
+# Information about the log rate ratio per pair of patients, one per group.
+pair_information <- function(z, dropout) {
+  shape <- if (dropout > 0) "uniform" else "complete"
+  1 / sum(1 / vapply(c(z$rate * z$ratio, z$rate), function(r) {
+    information_factor(r, z$dispersion, 1, 1, dropout, shape)
+  }, numeric(1)))
+}
+for (z in real_settings) {
+  for (dd in c(0.1, 0.2)) {
+    say("  ", z$label, ": information lost to a uniform dropout proportion ",
+        "of ", dd, " ", fmt(1 - pair_information(z, dd) /
+                              pair_information(z, 0), 3))
+  }
+}
+say("")
 say("  cutpoint at which the power crosses ", fmt(real_power, 2))
 for (lab in unique(real_power_curve$label)) {
+  setting <- real_settings[[match(lab, vapply(real_settings,
+                                              function(w) w$label,
+                                              character(1)))]]
   for (dd in unique(real_power_curve$dropout)) {
     crossing <- vapply(sort(unique(real_power_curve$window1)), function(w) {
       block <- real_power_curve[real_power_curve$label == lab &
@@ -533,10 +594,14 @@ for (lab in unique(real_power_curve$label)) {
       if (is.na(above) || above == 1) {
         return(NA_real_)
       }
-      lower <- above - 1L
-      block$cutpoint[lower] + (real_power - block$rejection[lower]) *
-        diff(block$cutpoint[c(lower, above)]) /
-        diff(block$rejection[c(lower, above)])
+      # The grid brackets the crossing, and the closed form locates it.
+      gap <- function(cutpoint) {
+        do.call(adaptive2in1count,
+                c(real_arguments(setting, w, dd, real_n3),
+                  list(cutpoint = cutpoint)))$results$rejection - real_power
+      }
+      stats::uniroot(gap, block$cutpoint[c(above - 1L, above)],
+                     tol = 1e-10)$root
     }, numeric(1))
     say("    ", lab, ", dropout ", dd, ": ",
         paste(fmt(crossing, 3), collapse = " "), " for window1 ",

@@ -157,12 +157,12 @@ matS1 <- cbind(ifelse(duplicated(structure_label), "", structure_label),
                fmt(s1$window1, 2), fmt(s1$dropout, 1),
                fmt(s1$closed_small, 4), fmt(s1$observed_small, 4),
                fmt(s1$closed_large, 4), fmt(s1$observed_large, 4),
-               fmt(s1$discrepancy, 4))
+               fmt(s1$largest_z, 1))
 headS1 <- list(
   c("", "", "", "\\multicolumn{2}{c}{$\\rho_{XY}$}",
     "\\multicolumn{2}{c}{$\\rho_{XZ}$}", ""),
   c("Structure", "$\\tau_1$", "$d$", "Closed form", "Simulated",
-    "Closed form", "Simulated", "Largest gap"))
+    "Closed form", "Simulated", "Largest $|z|$"))
 # The design of the check is read from the data, so that the caption cannot
 # drift from the values that were simulated.
 two <- unique(s1[s1$structure == "distinct",
@@ -170,12 +170,24 @@ two <- unique(s1[s1$structure == "distinct",
                    "n1", "n2", "n3")])
 one <- unique(s1[s1$structure == "shared", c("rate2", "dispersion2")])
 stopifnot(nrow(two) == 1, nrow(one) == 1)
+planned <- unique(s1$planned)
+stopifnot(length(planned) == 1)
+usable_text <- if (all(s1$replications == planned)) {
+  ""
+} else {
+  paste0(", of which at least ",
+         format(min(s1$replications), big.mark = ",", scientific = FALSE),
+         " gave all three statistics")
+}
 capS1 <- paste(
   "Correlations of the interim statistic with the two final statistics",
   "obtained in closed form and from generated patients. The generator repeats",
-  "the model rather than calling the closed forms, and each value uses",
-  paste0(format(min(s1$replications), big.mark = ",", scientific = FALSE),
-         " or more replications of a trial that randomizes ", two$n1,
+  "the model rather than calling the closed forms. Each statistic is the log",
+  "rate ratio of the negative binomial model with an offset for the exposure",
+  "and the dispersion held at its design value, and both groups have the",
+  "rates given below. Each value uses",
+  paste0(format(planned, big.mark = ",", scientific = FALSE),
+         " replications", usable_text, " of a trial that randomizes ", two$n1,
          " patients per"),
   paste0("group before the interim analysis, ", two$n2, " per group in the",
          " small trial and ", two$n3, " per group in the large trial, at a",
@@ -186,10 +198,10 @@ capS1 <- paste(
          " for two endpoints and a single process of ", one$rate2,
          " events per year and dispersion ", one$dispersion2, " for one"),
   "endpoint. The follow-up period is complete when $d = 0$ and exponential",
-  "truncated at the year otherwise. The Monte Carlo error of a sample",
-  "correlation at this number of replications is about 0.008. The last column",
-  "is the larger of the two absolute gaps between the closed form and the",
-  "simulation")
+  "truncated at the year otherwise. The last column is the larger of the two",
+  "absolute differences between the simulation and the closed form, each",
+  "divided by the Monte Carlo standard error $(1 - \\rho^2) / \\sqrt{R}$ of a",
+  "sample correlation $\\rho$ at $R$ replications")
 write_tex_table(matS1, headS1, "lrrrrrrr",
                 file.path(res_dir, "tableS1_correlation_check.tex"),
                 capS1, "tab:check",

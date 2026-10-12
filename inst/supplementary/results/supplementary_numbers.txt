@@ -1,43 +1,43 @@
 Numbers quoted by the Supporting Information
-Written by inst/supplementary/data_generate.R on 2026-10-11
+Written by inst/supplementary/data_generate.R on 2026-10-12
 
 Figure S1  Required size against the dropout proportion
-  ratio1 0.55 ratio2 0.7: large trial from 784 with no dropout to 902 at a dropout proportion of 0.3 and 1,018 at 0.5, a rise of 15 and 30 per cent
-            expected sample size from 730 to 836 and 940
-  ratio1 0.55 ratio2 0.75: large trial from 1,190 with no dropout to 1,366 at a dropout proportion of 0.3 and 1,540 at 0.5, a rise of 15 and 29 per cent
-            expected sample size from 1,095 to 1,253 and 1,410
-  ratio1 0.55 ratio2 0.8: large trial from 1,952 with no dropout to 2,240 at a dropout proportion of 0.3 and 2,524 at 0.5, a rise of 15 and 29 per cent
-            expected sample size from 1,781 to 2,040 and 2,296
-  ratio1 0.65 ratio2 0.7: large trial from 846 with no dropout to 960 at a dropout proportion of 0.3 and 1,072 at 0.5, a rise of 13 and 27 per cent
-            expected sample size from 785 to 888 and 989
-  ratio1 0.65 ratio2 0.75: large trial from 1,282 with no dropout to 1,454 at a dropout proportion of 0.3 and 1,620 at 0.5, a rise of 13 and 26 per cent
-            expected sample size from 1,178 to 1,333 and 1,482
-  ratio1 0.65 ratio2 0.8: large trial from 2,106 with no dropout to 2,384 at a dropout proportion of 0.3 and 2,656 at 0.5, a rise of 13 and 26 per cent
-            expected sample size from 1,919 to 2,170 and 2,414
-  ratio1 0.75 ratio2 0.7: large trial from 854 with no dropout to 966 at a dropout proportion of 0.3 and 1,078 at 0.5, a rise of 13 and 26 per cent
-            expected sample size from 793 to 893 and 994
-  ratio1 0.75 ratio2 0.75: large trial from 1,294 with no dropout to 1,462 at a dropout proportion of 0.3 and 1,630 at 0.5, a rise of 13 and 26 per cent
-            expected sample size from 1,189 to 1,340 and 1,491
-  ratio1 0.75 ratio2 0.8: large trial from 2,124 with no dropout to 2,398 at a dropout proportion of 0.3 and 2,670 at 0.5, a rise of 13 and 26 per cent
-            expected sample size from 1,936 to 2,182 and 2,427
+  ratio1 0.55 ratio2 0.7: large trial from 784 with no dropout to 904 at a dropout proportion of 0.3 and 1,022 at 0.5, a rise of 15 and 30 per cent
+            expected sample size from 730 to 838 and 944
+  ratio1 0.55 ratio2 0.75: large trial from 1,190 with no dropout to 1,368 at a dropout proportion of 0.3 and 1,546 at 0.5, a rise of 15 and 30 per cent
+            expected sample size from 1,095 to 1,255 and 1,415
+  ratio1 0.55 ratio2 0.8: large trial from 1,952 with no dropout to 2,244 at a dropout proportion of 0.3 and 2,530 at 0.5, a rise of 15 and 30 per cent
+            expected sample size from 1,781 to 2,044 and 2,301
+  ratio1 0.65 ratio2 0.7: large trial from 846 with no dropout to 962 at a dropout proportion of 0.3 and 1,076 at 0.5, a rise of 14 and 27 per cent
+            expected sample size from 785 to 890 and 992
+  ratio1 0.65 ratio2 0.75: large trial from 1,282 with no dropout to 1,456 at a dropout proportion of 0.3 and 1,626 at 0.5, a rise of 14 and 27 per cent
+            expected sample size from 1,178 to 1,334 and 1,487
+  ratio1 0.65 ratio2 0.8: large trial from 2,106 with no dropout to 2,386 at a dropout proportion of 0.3 and 2,662 at 0.5, a rise of 13 and 26 per cent
+            expected sample size from 1,919 to 2,171 and 2,420
+  ratio1 0.75 ratio2 0.7: large trial from 854 with no dropout to 968 at a dropout proportion of 0.3 and 1,080 at 0.5, a rise of 13 and 26 per cent
+            expected sample size from 793 to 895 and 996
+  ratio1 0.75 ratio2 0.75: large trial from 1,294 with no dropout to 1,466 at a dropout proportion of 0.3 and 1,634 at 0.5, a rise of 13 and 26 per cent
+            expected sample size from 1,189 to 1,343 and 1,495
+  ratio1 0.75 ratio2 0.8: large trial from 2,124 with no dropout to 2,402 at a dropout proportion of 0.3 and 2,674 at 0.5, a rise of 13 and 26 per cent
+            expected sample size from 1,936 to 2,186 and 2,431
 
 Figure S2  Correlation of the interim with the two final statistics
   small trial on phase2, dropout 0: rho_XY 0.816, rho_XZ from 0.263 to 0.096, within-patient correlation 0.323
-  small trial on phase2, dropout 0.2: rho_XY 0.816, rho_XZ from 0.276 to 0.101, within-patient correlation 0.328
-  small trial on phase2, dropout 0.4: rho_XY 0.816, rho_XZ from 0.291 to 0.106, within-patient correlation 0.333
+  small trial on phase2, dropout 0.2: rho_XY 0.816, rho_XZ from 0.256 to 0.093, within-patient correlation 0.328
+  small trial on phase2, dropout 0.4: rho_XY 0.816, rho_XZ from 0.247 to 0.090, within-patient correlation 0.333
   small trial on phase3, dropout 0: rho_XY 0.263, rho_XZ from 0.263 to 0.096, within-patient correlation 0.323
-  small trial on phase3, dropout 0.2: rho_XY 0.276, rho_XZ from 0.276 to 0.101, within-patient correlation 0.328
-  small trial on phase3, dropout 0.4: rho_XY 0.291, rho_XZ from 0.291 to 0.106, within-patient correlation 0.333
+  small trial on phase3, dropout 0.2: rho_XY 0.256, rho_XZ from 0.256 to 0.093, within-patient correlation 0.328
+  small trial on phase3, dropout 0.4: rho_XY 0.247, rho_XZ from 0.247 to 0.090, within-patient correlation 0.333
 
 Table S1  Measured gap between the closed forms and the simulation
-  distinct, window1 0.5, dropout 0: largest gap 0.0027
-  shared, window1 0.5, dropout 0: largest gap 0.0083
-  distinct, window1 0.5, dropout 0.4: largest gap 0.0374
-  shared, window1 0.5, dropout 0.4: largest gap 0.0164
-  distinct, window1 1, dropout 0: largest gap 0.0107
-  shared, window1 1, dropout 0: largest gap 0.0029
-  distinct, window1 1, dropout 0.4: largest gap 0.0539
-  shared, window1 1, dropout 0.4: largest gap 0.0070
-  largest gap under complete follow-up       0.0107
-  gaps with dropout, distinct                0.0374 to 0.0539
-  gaps with dropout, shared                0.0070 to 0.0164
+  distinct, window1 0.5, dropout 0: largest gap 0.0026, largest gap in standard errors 0.95
+  shared, window1 0.5, dropout 0: largest gap 0.0123, largest gap in standard errors 1.87
+  distinct, window1 0.5, dropout 0.4: largest gap 0.0049, largest gap in standard errors 1.78
+  shared, window1 0.5, dropout 0.4: largest gap 0.0031, largest gap in standard errors 0.48
+  distinct, window1 1, dropout 0: largest gap 0.0109, largest gap in standard errors 1.39
+  shared, window1 1, dropout 0: largest gap 0.0069, largest gap in standard errors 1.18
+  distinct, window1 1, dropout 0.4: largest gap 0.0042, largest gap in standard errors 1.53
+  shared, window1 1, dropout 0.4: largest gap 0.0142, largest gap in standard errors 2.37
+  largest gap                                0.0142
+  largest gap in standard errors             2.37
+  replications per setting                   15000, usable at least 15000

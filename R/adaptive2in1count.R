@@ -15,8 +15,10 @@
 #' Counts follow an additive gamma frailty model, so each endpoint is marginally
 #' negative binomial with its own dispersion. The two endpoints of a patient are
 #' correlated through the frailty they share and through the follow-up period
-#' they share, and the operating characteristics are obtained from the resulting
-#' trivariate normal distribution of the three log rate ratios. Setting
+#' they share. Each analysis conditions on the realised exposure through its
+#' offset, so only the frailty correlates the three log rate ratios, and the
+#' operating characteristics are obtained from their trivariate normal
+#' distribution. Setting
 #' \code{endpoints = "shared"} instead treats the two endpoints as the same
 #' event counted over the two windows, which covers a design whose three
 #' analyses read one endpoint.

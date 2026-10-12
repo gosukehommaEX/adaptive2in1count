@@ -11,8 +11,9 @@ Supporting Information are produced by the pair of scripts in
 
 Separating the two steps means that a change to a figure or a table does not
 require the operating characteristics to be evaluated again. Steps 7 and 8 of
-`data_generate.R` simulate tens of thousands of trials and take several
-minutes; the rest of the script takes seconds.
+`data_generate.R` simulate trials, one hundred thousand per scenario under the
+global null hypothesis, and take most of the running time; the rest of the
+script takes seconds.
 
 ## Exhibits
 
@@ -20,7 +21,7 @@ minutes; the rest of the script takes seconds.
 | --- | --- |
 | `figure1_type_one_error` | Maximum type I error rate against the cutpoint, by dropout, dispersion and small trial endpoint |
 | `figure2_power` | Power against the cutpoint, by treatment effect and dropout |
-| `figure3_endpoint_correlation` | Within-patient correlation of the two endpoints, separated into its frailty and follow-up sources |
+| `figure3_endpoint_correlation` | Within-patient correlation of the two counts, separated into its frailty and follow-up sources, against the correlation of the two estimated log rate ratios |
 | `figure4_endpoint_structure` | Correlation of the interim statistic with the two final statistics under both endpoint structures |
 | `figure5_real_trial` | Power of the tezepelumab design against the cutpoint, by interim window, dropout and set of design assumptions |
 | `table1_operating_characteristics.tex` | Operating characteristics at cutpoints calibrated to a target probability of expansion |

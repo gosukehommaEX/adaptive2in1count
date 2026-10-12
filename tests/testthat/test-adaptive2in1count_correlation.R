@@ -38,11 +38,14 @@ test_that("independent endpoints under complete follow-up decouple", {
   expect_true(rho$holds)
 })
 
-test_that("dropout couples the endpoints without a shared frailty", {
+test_that("dropout correlates the counts but not the statistics", {
+  # Without a shared frailty a random follow-up period still correlates the
+  # two counts of a patient, but each analysis conditions on the exposure, so
+  # the two estimated log rate ratios stay uncorrelated.
   rho <- do.call(adaptive2in1count_correlation,
                  modifyList(base, list(shared = 0, dropout = 0.4,
                                        dropout_shape = "exponential")))
-  expect_gt(rho$interim_large, 0)
+  expect_equal(rho$interim_large, 0)
   expect_gt(rho$endpoint, 0)
   expect_true(rho$holds)
 })

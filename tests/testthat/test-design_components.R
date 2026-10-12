@@ -29,6 +29,23 @@ test_that("dropout raises the coupling above the frailty term", {
   expect_true(all(out$coupling > 0.4 / (0.8 * 0.8)))
 })
 
+test_that("the coupling vanishes without a shared frailty under dropout", {
+  out <- do.call(design_components,
+                 c(modifyList(reference, list(shared = 0)),
+                   list(dropout = 0.4, dropout_shape = "exponential")))
+  expect_equal(out$coupling, c(0, 0))
+  expect_equal(out$correlation[["interim_large"]], 0)
+})
+
+test_that("the coupling of one endpoint gives the canonical covariance", {
+  out <- do.call(design_components,
+                 c(reference, list(dropout = 0.4,
+                                   dropout_shape = "exponential",
+                                   endpoints = "shared")))
+  expect_equal(sum(out$coupling / 300), out$variance[["large"]],
+               tolerance = 1e-8)
+})
+
 test_that("dropout inflates every variance", {
   complete <- do.call(design_components, reference)
   reduced <- do.call(design_components, c(reference,

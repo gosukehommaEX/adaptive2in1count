@@ -143,28 +143,43 @@ fig2 <- ggplot(d2, aes(cutpoint, power, colour = loss, linetype = loss)) +
   theme_ms
 save_fig(fig2, "figure2_power")
 
-## Figure 3. Within-patient correlation of the two endpoints, by its two
-## sources.
+## Figure 3. Within-patient correlation of the two counts, by its two
+## sources, against the correlation of the two estimated log rate ratios.
 d3 <- readRDS(file.path(data_dir, "correlation_endpoint.rds"))
-d3$frailty <- factor(d3$shared, levels = c(0, 0.23, 0.47, 0.7))
-d3$row <- factor(d3$dispersion2, levels = c(0.8, 1.5),
-                 labels = c("nu[2] == 0.8", "nu[2] == 1.5"))
-d3$col <- factor(d3$window1, levels = c(0.25, 0.5, 1),
-                 labels = c("tau[1] == 0.25", "tau[1] == 0.50",
-                            "tau[1] == 1.00"))
+keys3 <- d3[c("dropout", "shared", "window1", "dispersion2")]
+d3_long <- rbind(
+  data.frame(keys3, quantity = "counts", value = d3$correlation),
+  data.frame(keys3, quantity = "statistics", value = d3$statistic))
+d3_long$quantity <- factor(d3_long$quantity,
+                           levels = c("counts", "statistics"))
+d3_long$frailty <- factor(d3_long$shared, levels = c(0, 0.23, 0.47, 0.7))
+d3_long$row <- factor(d3_long$dispersion2, levels = c(0.8, 1.5),
+                      labels = c("nu[2] == 0.8", "nu[2] == 1.5"))
+d3_long$col <- factor(d3_long$window1, levels = c(0.25, 0.5, 1),
+                      labels = c("tau[1] == 0.25", "tau[1] == 0.50",
+                                 "tau[1] == 1.00"))
 lab_frailty <- parse(text = c("gamma == 0", "gamma == 0.23",
                               "gamma == 0.47", "gamma == 0.70"))
-fig3 <- ggplot(d3, aes(dropout, correlation, colour = frailty,
-                       linetype = frailty, shape = frailty)) +
+lab_quantity <- c("Counts", "Estimated log rate ratios")
+fig3 <- ggplot(d3_long, aes(dropout, value, colour = frailty,
+                            shape = frailty, linetype = quantity,
+                            group = interaction(frailty, quantity))) +
   geom_line(linewidth = 1.2) +
-  geom_point(size = 3, data = subset(d3, round(dropout * 100) %% 10 == 0)) +
+  geom_point(size = 3,
+             data = subset(d3_long, quantity == "counts" &
+                             round(dropout * 100) %% 10 == 0)) +
   facet_grid(row ~ col, labeller = label_parsed) +
   scale_colour_manual(values = pal4, labels = lab_frailty) +
-  scale_linetype_manual(values = lty4, labels = lab_frailty) +
   scale_shape_manual(values = shape4, labels = lab_frailty) +
+  scale_linetype_manual(values = lty2, labels = lab_quantity) +
+  guides(colour = guide_legend(order = 1), shape = guide_legend(order = 1),
+         linetype = guide_legend(order = 2,
+                                 override.aes = list(colour = "grey30",
+                                                     shape = NA))) +
   labs(x = expression("Dropout proportion " * italic(d)),
-       y = "Within-patient correlation of the two endpoints") +
-  theme_ms
+       y = "Within-patient correlation") +
+  theme_ms +
+  theme(legend.box = "vertical")
 save_fig(fig3, "figure3_endpoint_correlation")
 
 ## Figure 4. Correlation of the interim statistic with the two final
@@ -238,19 +253,24 @@ head1 <- list(
 cap1 <- paste(
   "Operating characteristics of the 2-in-1 adaptive design for count endpoints",
   "in the reference chronic obstructive pulmonary disease setting. The Phase 2",
-  "endpoint has rate $\\theta_1 = 2$ events per year, dispersion",
+  "endpoint has rate $\\theta_{2,1} = 2$ events per year in the control",
+  "group, dispersion",
   "$\\nu_1 = 0.7$ and observation window $\\tau_1 = 0.5$ years, and the",
-  "Phase 3 endpoint has rate $\\theta_2 = 1.3$ events per year, dispersion",
+  "Phase 3 endpoint has rate $\\theta_{2,2} = 1.3$ events per year in the",
+  "control group, dispersion",
   "$\\nu_2 = 0.8$ and observation window $\\tau_2 = 1$ year. The shape of the",
   "frailty component shared by the two endpoints is $\\gamma = 0.4$. The",
   "follow-up period is exponential truncated at $\\tau_2$ with dropout",
   "proportion $d = 0.3$. The trial randomizes 80 patients per group before the",
   "interim analysis, 120 per group in the small trial and 750 per group in the",
-  "large trial, and the Wald test is applied at a one-sided significance level",
-  "of 0.025. The trial expands when the observed rate ratio of the Phase 2",
+  "large trial, the small trial is analyzed on the Phase 2 endpoint",
+  "(configuration A), and the Wald test is applied at a one-sided",
+  "significance level of 0.025. The trial expands when the observed rate",
+  "ratio of the Phase 2",
   "endpoint is at or below the cutpoint $C$, which is chosen so that the",
   "probability of expansion attains the value in the column headed target when",
-  "the Phase 2 rate ratio is 0.65. $\\mathrm{H}_0$ sets both rate ratios to one and $\\mathrm{H}_1$",
+  "the Phase 2 rate ratio is 0.65. $\\mathrm{H}_0$ is the global null",
+  "hypothesis, which sets both rate ratios to one, and $\\mathrm{H}_1$",
   "sets the Phase 2 rate ratio to 0.65 and the Phase 3 rate ratio to 0.75. The",
   "columns headed small and large split the power into the small trial and the",
   "large trial, and $E(N)$ is the expected total number of patients")
@@ -275,7 +295,8 @@ head2 <- list(
 cap2 <- paste(
   "Power of the 2-in-1 adaptive design against the cutpoint, with the limit",
   "that the cutpoint places on it. The design is that of",
-  "Table~\\ref{tab:operating} and the alternative sets the Phase 2 rate ratio",
+  "Table~\\ref{tab:operating}, with the small trial analyzed on the Phase 2",
+  "endpoint, and the alternative sets the Phase 2 rate ratio",
   "to 0.65 and the Phase 3 rate ratio to 0.75. The cutpoint $C$ is chosen so",
   "that the probability of expansion attains the value in the column headed",
   "target. The column headed attained is the power at 750 patients per group in",
@@ -303,12 +324,22 @@ short3 <- c(
     "Reference, $\\mathrm{H}_1$, $d = 0.5$",
   "Small design, global null, dropout 0.3" = "Small, $\\mathrm{H}_0$, $d = 0.3$",
   "Small design, both endpoints, dropout 0.3" = "Small, $\\mathrm{H}_1$, $d = 0.3$",
-  "Shared endpoint, global null, dropout 0.3" = "Shared, $\\mathrm{H}_0$, $d = 0.3$",
+  "Shared endpoint, global null, dropout 0.3" =
+    "Shared, $\\mathrm{H}_0$, $d = 0.3$, $\\tau_1 = 0.5$",
   "Shared endpoint, both windows, dropout 0.3" =
     "Shared, $\\mathrm{H}_1$, $d = 0.3$, $\\tau_1 = 0.5$",
   "Shared endpoint, one window, dropout 0.3" =
     "Shared, $\\mathrm{H}_1$, $d = 0.3$, $\\tau_1 = 1$")
 stopifnot(all(t3$label %in% names(short3)))
+# The numbers of replications are read from the data, so that the caption
+# cannot drift from the values that were simulated.
+count3 <- function(x) format(x, big.mark = ",", scientific = FALSE)
+nsim_null <- unique(t3$nsim[grepl("global null", t3$label)])
+alternative3 <- "^(Reference design|Shared endpoint), (both|one)"
+nsim_reference <- unique(t3$nsim[grepl(alternative3, t3$label)])
+nsim_small <- unique(t3$nsim[grepl("^Small design, both", t3$label)])
+stopifnot(length(nsim_null) == 1, length(nsim_reference) == 1,
+          length(nsim_small) == 1)
 label3 <- unname(short3[t3$label])
 mat3 <- cbind(ifelse(duplicated(label3), "", label3), fmt(t3$cutpoint, 1),
               fmt(t3$approximate, 4), fmt(t3$known, 4), fmt(t3$se_known, 4),
@@ -328,16 +359,17 @@ cap3 <- paste(
   "the design value in the first pair of columns and estimating it from the",
   "data in the second pair. The two pairs are computed on the same generated",
   "trials and differ only in the analysis. The rows headed reference and small",
-  "have two endpoints that count different events, and the rows headed shared",
+  "have two endpoints that count different events, with the small trial",
+  "analyzed on the Phase 2 endpoint, and the rows headed shared",
   "have one endpoint counted over the interim window $\\tau_1$ and over the",
   "year, with rate 1.3 events per year and dispersion 0.8. $\\mathrm{H}_0$ sets the rate",
   "ratios to one, $\\mathrm{H}_1$ sets the Phase 2 rate ratio to 0.65 and the Phase 3",
   "rate ratio to 0.75 for two endpoints and sets the single rate ratio to 0.75",
   "for a shared endpoint. Each simulated value uses",
-  paste0(format(min(t3$nsim), big.mark = ",", scientific = FALSE),
-         " replications for the reference design and"),
-  paste0(format(max(t3$nsim), big.mark = ",", scientific = FALSE),
-         " for the small design,"),
+  paste0(count3(nsim_null), " replications under $\\mathrm{H}_0$ and, under"),
+  paste0("$\\mathrm{H}_1$, ", count3(nsim_reference),
+         " for the reference design and the shared endpoint and ",
+         count3(nsim_small), " for the small design,"),
   "and the standard error is the binomial standard error at that number of",
   "replications")
 write_tex_table(mat3, head3, "lrrrrrr",

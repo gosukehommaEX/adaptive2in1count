@@ -100,13 +100,18 @@ saveRDS(correlation_statistic, file.path(data_dir, "correlation_statistic.rds"))
 ## (3) Discrepancy between the closed-form correlations of the three
 ## statistics and the correlations of statistics computed from generated
 ## patients. The generator repeats the model rather than calling the closed
-## forms, so the measured discrepancy is an independent check.
+## forms, so the measured discrepancy is an independent check. Each statistic is
+## the log rate ratio of the negative binomial model with an offset for the
+## exposure and the dispersion held at its design value, which is the analysis
+## that the closed forms describe.
 message("(3/4) measured discrepancy of the closed-form correlations")
 set.seed(20260808)
-# Fifteen thousand replications leave a Monte Carlo error of about 0.008 on
-# each sample correlation, which is well below the discrepancy being measured.
+# Fifteen thousand replications leave a Monte Carlo error of at most about
+# 0.008 on each sample correlation. The interim analysis and the small trial
+# have the sizes of the reference design, so that the error of the normal
+# approximation at a smaller number of patients does not enter the check.
 replications <- 15000
-check_sizes <- c(40, 60, 150)
+check_sizes <- c(80, 120, 300)
 draw_follow_up_check <- function(size, dropout, shape) {
   if (shape == "complete" || dropout == 0) {
     return(rep(window2, size))
@@ -152,14 +157,19 @@ correlation_check <- do.call(rbind, lapply(seq_len(nrow(check_settings)),
     lapply(patients, function(x) matrix(x, nrow = replications))
   })
   contrast <- function(size, endpoint) {
-    ratio <- vapply(seq_len(2), function(g) {
-      columns <- seq_len(size)
-      rowSums(groups[[g]][[paste0("count", endpoint)]][, columns,
-                                                       drop = FALSE]) /
-        rowSums(groups[[g]][[paste0("exposure", endpoint)]][, columns,
-                                                            drop = FALSE])
-    }, numeric(replications))
-    log(ratio[, 1]) - log(ratio[, 2])
+    count <- paste0("count", endpoint)
+    exposure <- paste0("exposure", endpoint)
+    piece <- function(g, field) {
+      groups[[g]][[field]][, seq_len(size), drop = FALSE]
+    }
+    dispersion <- if (z$structure == "shared") {
+      dispersion2
+    } else {
+      c(dispersion1, dispersion2)[endpoint]
+    }
+    negative_binomial_contrast(piece(1L, count), piece(1L, exposure),
+                               piece(2L, count), piece(2L, exposure),
+                               dispersion = dispersion)$estimate
   }
   statistic <- cbind(contrast(check_sizes[1], 1L), contrast(check_sizes[2], 1L),
                      contrast(check_sizes[3], 2L))
@@ -173,8 +183,13 @@ correlation_check <- do.call(rbind, lapply(seq_len(nrow(check_settings)),
     n1 = check_sizes[1], n2 = check_sizes[2], n3 = check_sizes[3],
     window1 = z$window1, window2 = window2, dropout = z$dropout,
     dropout_shape = shape, endpoints = z$structure)$correlation
+  # Monte Carlo standard error of a sample correlation.
+  error <- (1 - expected^2) / sqrt(sum(usable))
+  standardized <- c(observed[1, 2] - expected[["interim_small"]],
+                    observed[1, 3] - expected[["interim_large"]]) / error
   data.frame(structure = z$structure, dropout = z$dropout,
-             window1 = z$window1, replications = sum(usable),
+             window1 = z$window1, planned = replications,
+             replications = sum(usable),
              rate1 = if (z$structure == "shared") rate2 else rate1,
              rate2 = rate2,
              dispersion1 = if (z$structure == "shared") dispersion2 else
@@ -189,6 +204,8 @@ correlation_check <- do.call(rbind, lapply(seq_len(nrow(check_settings)),
                                      expected[["interim_small"]]),
                                abs(observed[1, 3] -
                                      expected[["interim_large"]])),
+             z_small = standardized[1], z_large = standardized[2],
+             largest_z = max(abs(standardized)),
              stringsAsFactors = FALSE)
 }))
 saveRDS(correlation_check, file.path(data_dir, "correlation_check.rds"))
@@ -254,16 +271,16 @@ for (i in seq_len(nrow(correlation_check))) {
   say("  ", correlation_check$structure[i], ", window1 ",
       correlation_check$window1[i], ", dropout ",
       correlation_check$dropout[i], ": largest gap ",
-      fmt(correlation_check$discrepancy[i]))
+      fmt(correlation_check$discrepancy[i]), ", largest gap in standard ",
+      "errors ", fmt(correlation_check$largest_z[i], 2))
 }
-say("  largest gap under complete follow-up       ",
-    fmt(max(correlation_check$discrepancy[correlation_check$dropout == 0])))
-for (st in unique(correlation_check$structure)) {
-  block <- correlation_check[correlation_check$structure == st &
-                               correlation_check$dropout > 0, ]
-  say("  gaps with dropout, ", st, "                ",
-      fmt(min(block$discrepancy)), " to ", fmt(max(block$discrepancy)))
-}
+say("  largest gap                                ",
+    fmt(max(correlation_check$discrepancy)))
+say("  largest gap in standard errors             ",
+    fmt(max(correlation_check$largest_z), 2))
+say("  replications per setting                   ",
+    min(correlation_check$planned), ", usable at least ",
+    min(correlation_check$replications))
 close(con)
 message("numbers quoted by the Supporting Information written to ", report)
 

@@ -8,6 +8,11 @@
 * Two endpoint structures through `endpoints`: `"distinct"` for two endpoints
   that count different events (additive gamma frailty) and `"shared"` for one
   endpoint read over two windows.
+* `coupling_factor()` gives the covariance of two log rates estimated on shared
+  patients from the covariance of the counts given the exposure, so a random
+  follow-up period correlates the counts but not the estimated log rate ratios.
+  The same factor covers both endpoint structures and reproduces the canonical
+  covariance of group sequential theory for one endpoint.
 * `adaptive2in1count_typeI()`, `adaptive2in1count_power()`,
   `adaptive2in1count_size()`, `adaptive2in1count_cutpoint()` and
   `adaptive2in1count_correlation()` for the maximum type I error rate, power
