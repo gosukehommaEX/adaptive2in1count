@@ -1,5 +1,5 @@
 Reproduction of published numbers
-Written by inst/reproduce/reproduce_published.R on 2026-10-12
+Written by inst/reproduce/reproduce_published.R on 2026-10-15
 
 source | item | published | reproduced | verdict | reason
 Tang (2015), Table 2 | w_c 0.2, kappa 1.0, rate 0.4, ratio 0.5, uniform | 138 | 138 | PASS | 
