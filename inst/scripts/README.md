@@ -36,7 +36,11 @@ again.
 Step 10 writes `manuscript_numbers.txt`, which collects every number the main
 text quotes in the order in which the text uses them. Checking a sentence
 against that file is the same as checking it against the evaluation, so no
-number in the manuscript rests on a transcription.
+number in the manuscript rests on a transcription. Statements about the shape
+of a curve (a rise, a fall, a trough, or one curve lying above another) are
+checked there on grids finer than the ones the figures are drawn from:
+cutpoints in steps of 0.001 for Figures 2 and 5, and dropout proportions in
+steps of 0.0025 for Figure 3.
 
 Each `.tex` file is a complete `table` environment that uses only standard
 LaTeX commands, so it can be uploaded to the manuscript source without further

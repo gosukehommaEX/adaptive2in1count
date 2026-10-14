@@ -143,7 +143,8 @@ fig5 <- ggplot(d5_long, aes(n3, value, colour = statistic,
   scale_colour_manual(values = pal2, labels = lab_stat) +
   scale_linetype_manual(values = lty2, labels = lab_stat) +
   expand_limits(y = 0) +
-  labs(x = expression("Patients per group in the large trial, " * italic(n)[3]),
+  labs(x = expression("Patients per group in the large trial, " *
+                        italic(n)[3 * "," * italic(j)]),
        y = "Correlation with the interim statistic") +
   theme_ms
 save_fig(fig5, "figureS2_statistic_correlation")

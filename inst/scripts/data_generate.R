@@ -576,23 +576,85 @@ say("  largest type I error rate at a single combination ",
 say("")
 
 say("Section 3.3  Power and the cutpoint  (Figure 2, Tables 1 and 2)")
-for (r2 in unique(power_curve$ratio2)) {
-  for (r1 in unique(power_curve$ratio1)) {
-    for (dd in unique(power_curve$dropout)) {
-      block <- power_curve[power_curve$ratio1 == r1 & power_curve$ratio2 == r2 &
-                             power_curve$dropout == dd, ]
-      block <- block[order(block$cutpoint), ]
-      trough <- which.min(block$power)
-      if (block$power[1] - block$power[trough] > 1e-4) {
-        say("  dip: ratio1 ", r1, " ratio2 ", r2, " dropout ", dd,
-            "  from ", fmt(block$power[1], 3), " at C = ",
-            fmt(block$cutpoint[1], 2), " to ", fmt(block$power[trough], 3),
-            " at C = ", fmt(block$cutpoint[trough], 2),
-            ", largest power ", fmt(max(block$power), 3))
-      }
-    }
+# Statements about the shape of a power curve are checked on a grid of
+# cutpoints fifty times finer than the one the figures are drawn from, so that
+# a dip or a fall between two points of a figure is not missed. A step down
+# smaller than fall_tolerance is taken as numerical noise of integrate().
+fine_cutpoints <- seq(0.4, 2, by = 0.001)
+fall_tolerance <- 1e-12
+# The stretch of cutpoints over which a curve falls: its first and last
+# cutpoints, the number of separate runs and the total fall, or NULL when the
+# curve never falls.
+fall_of <- function(cutpoint, value) {
+  o <- order(cutpoint)
+  cutpoint <- cutpoint[o]
+  value <- value[o]
+  step <- diff(value)
+  down <- which(step < -fall_tolerance)
+  if (length(down) == 0L) {
+    return(NULL)
+  }
+  data.frame(from = cutpoint[min(down)], to = cutpoint[max(down) + 1L],
+             runs = sum(diff(down) > 1) + 1L, fall = -sum(step[down]))
+}
+no_falls <- data.frame(from = numeric(0), to = numeric(0), runs = integer(0),
+                       fall = numeric(0))
+say_falls <- function(falls, label) {
+  for (i in seq_len(nrow(falls))) {
+    say("  fall on a cutpoint step of 0.001: ", label(falls[i, ]), " from C = ",
+        fmt(falls$from[i], 3), " to ", fmt(falls$to[i], 3), " in ",
+        falls$runs[i], " run(s), fall ",
+        formatC(falls$fall[i], format = "e", digits = 2))
   }
 }
+fig2_fine <- lapply(seq_len(nrow(panel2)), function(i) {
+  adaptive2in1count_power(
+    rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
+    dispersion2 = dispersion2, shared = shared, n1 = n1, n2 = n2, n3 = n3,
+    cutpoint = fine_cutpoints, ratio1 = panel2$ratio1[i],
+    ratio2 = panel2$ratio2[i], window1 = window1, window2 = window2,
+    dropout = panel2$dropout[i], dropout_shape = shape_for(panel2$dropout[i]),
+    alpha = alpha)$results
+})
+for (i in seq_len(nrow(panel2))) {
+  block <- fig2_fine[[i]]
+  block <- block[order(block$cutpoint), ]
+  trough <- which.min(block$power)
+  if (block$power[1] - block$power[trough] > 1e-4) {
+    say("  dip: ratio1 ", panel2$ratio1[i], " ratio2 ", panel2$ratio2[i],
+        " dropout ", panel2$dropout[i],
+        "  from ", fmt(block$power[1], 3), " at C = ",
+        fmt(block$cutpoint[1], 2), " to ", fmt(block$power[trough], 3),
+        " at C = ", fmt(block$cutpoint[trough], 3),
+        ", largest power ", fmt(max(block$power), 3))
+  }
+}
+fig2_falls <- do.call(rbind, lapply(seq_len(nrow(panel2)), function(i) {
+  f <- fall_of(fig2_fine[[i]]$cutpoint, fig2_fine[[i]]$power)
+  if (is.null(f)) NULL else data.frame(panel2[i, ], f)
+}))
+if (is.null(fig2_falls)) {
+  fig2_falls <- data.frame(panel2[0, ], no_falls)
+}
+say_falls(fig2_falls, function(z) {
+  paste0("ratio1 ", z$ratio1, " ratio2 ", z$ratio2, " dropout ", z$dropout)
+})
+# The upper row of Figure 2, which the text describes as rising.
+upper_row <- abs(panel2$ratio2 - 0.7) < 1e-9
+upper_falls <- fig2_falls[abs(fig2_falls$ratio2 - 0.7) < 1e-9, ]
+say("  upper row of Figure 2 (ratio2 0.7), cutpoint step 0.001: curves that ",
+    "fall ", nrow(upper_falls), " of ", sum(upper_row),
+    if (nrow(upper_falls) > 0L) {
+      paste0(", ratio1 ", paste(sort(unique(upper_falls$ratio1)),
+                                collapse = " "),
+             ", falls start at C = ",
+             paste(fmt(sort(unique(upper_falls$from)), 3), collapse = " "),
+             " and end by C = ", fmt(max(upper_falls$to), 3),
+             ", largest fall ",
+             formatC(max(upper_falls$fall), format = "e", digits = 2))
+    } else {
+      ""
+    })
 say("  type I error rate over the calibrated cutpoints, smallest ",
     fmt(min(operating_table$type1)), " largest ", fmt(max(operating_table$type1)))
 say("  contribution of the small trial, largest    ",
@@ -799,6 +861,39 @@ for (z in real_settings) {
                               pair_information(z, 0), 3))
   }
 }
+say("")
+# Figure 5 on the fine grid of cutpoints of Section 3.3, for the statement that
+# its curves rise with the cutpoint.
+fig5_falls <- do.call(rbind, lapply(seq_len(nrow(panel_real)), function(i) {
+  z <- real_settings[[match(panel_real$label[i],
+                            vapply(real_settings, function(w) w$label,
+                                   character(1)))]]
+  fit <- do.call(adaptive2in1count,
+                 c(real_arguments(z, panel_real$window1[i],
+                                  panel_real$dropout[i], real_n3),
+                   list(cutpoint = fine_cutpoints)))$results
+  f <- fall_of(fit$cutpoint, fit$rejection)
+  if (is.null(f)) NULL else data.frame(panel_real[i, ], f)
+}))
+if (is.null(fig5_falls)) {
+  fig5_falls <- data.frame(panel_real[0, ], no_falls)
+}
+say_falls(fig5_falls, function(z) {
+  paste0(z$label, ", dropout ", z$dropout, ", window1 ", z$window1)
+})
+say("  Figure 5, cutpoint step 0.001: curves that fall ", nrow(fig5_falls),
+    " of ", nrow(panel_real),
+    if (nrow(fig5_falls) > 0L) {
+      paste0(", window1 ", paste(sort(unique(fig5_falls$window1)),
+                                 collapse = " "),
+             ", falls start at C = ",
+             paste(fmt(sort(unique(fig5_falls$from)), 3), collapse = " "),
+             " and end by C = ", fmt(max(fig5_falls$to), 3),
+             ", largest fall ",
+             formatC(max(fig5_falls$fall), format = "e", digits = 2))
+    } else {
+      ""
+    })
 say("")
 say("  cutpoint at which the power crosses ", fmt(real_power, 2))
 for (lab in unique(real_power_curve$label)) {

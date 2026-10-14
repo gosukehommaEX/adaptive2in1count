@@ -15,15 +15,29 @@ Section 3.2  Type I error rate  (Figure 1)
   largest type I error rate at a single combination 0.0250
 
 Section 3.3  Power and the cutpoint  (Figure 2, Tables 1 and 2)
-  dip: ratio1 0.55 ratio2 0.8 dropout 0  from 0.771 at C = 0.40 to 0.723 at C = 0.60, largest power 0.844
-  dip: ratio1 0.55 ratio2 0.8 dropout 0.2  from 0.750 at C = 0.40 to 0.694 at C = 0.60, largest power 0.816
-  dip: ratio1 0.55 ratio2 0.8 dropout 0.4  from 0.723 at C = 0.40 to 0.656 at C = 0.60, largest power 0.778
-  dip: ratio1 0.65 ratio2 0.8 dropout 0  from 0.525 at C = 0.40 to 0.509 at C = 0.55, largest power 0.844
-  dip: ratio1 0.65 ratio2 0.8 dropout 0.2  from 0.508 at C = 0.40 to 0.488 at C = 0.55, largest power 0.816
-  dip: ratio1 0.65 ratio2 0.8 dropout 0.4  from 0.485 at C = 0.40 to 0.461 at C = 0.55, largest power 0.778
-  dip: ratio1 0.75 ratio2 0.8 dropout 0  from 0.281 at C = 0.40 to 0.278 at C = 0.50, largest power 0.844
-  dip: ratio1 0.75 ratio2 0.8 dropout 0.2  from 0.272 at C = 0.40 to 0.268 at C = 0.50, largest power 0.815
-  dip: ratio1 0.75 ratio2 0.8 dropout 0.4  from 0.260 at C = 0.40 to 0.255 at C = 0.50, largest power 0.778
+  dip: ratio1 0.55 ratio2 0.8 dropout 0  from 0.771 at C = 0.40 to 0.723 at C = 0.590, largest power 0.844
+  dip: ratio1 0.65 ratio2 0.8 dropout 0  from 0.525 at C = 0.40 to 0.509 at C = 0.545, largest power 0.844
+  dip: ratio1 0.75 ratio2 0.8 dropout 0  from 0.281 at C = 0.40 to 0.278 at C = 0.508, largest power 0.844
+  dip: ratio1 0.55 ratio2 0.8 dropout 0.2  from 0.750 at C = 0.40 to 0.693 at C = 0.593, largest power 0.816
+  dip: ratio1 0.65 ratio2 0.8 dropout 0.2  from 0.508 at C = 0.40 to 0.488 at C = 0.548, largest power 0.816
+  dip: ratio1 0.75 ratio2 0.8 dropout 0.2  from 0.272 at C = 0.40 to 0.268 at C = 0.510, largest power 0.815
+  dip: ratio1 0.55 ratio2 0.7 dropout 0.4  from 0.745 at C = 0.40 to 0.745 at C = 0.428, largest power 0.990
+  dip: ratio1 0.55 ratio2 0.8 dropout 0.4  from 0.723 at C = 0.40 to 0.656 at C = 0.595, largest power 0.778
+  dip: ratio1 0.65 ratio2 0.8 dropout 0.4  from 0.485 at C = 0.40 to 0.461 at C = 0.551, largest power 0.778
+  dip: ratio1 0.75 ratio2 0.8 dropout 0.4  from 0.260 at C = 0.40 to 0.255 at C = 0.513, largest power 0.778
+  fall on a cutpoint step of 0.001: ratio1 0.55 ratio2 0.7 dropout 0 from C = 0.400 to 0.418 in 1 run(s), fall 2.25e-05
+  fall on a cutpoint step of 0.001: ratio1 0.55 ratio2 0.8 dropout 0 from C = 0.400 to 0.590 in 1 run(s), fall 4.86e-02
+  fall on a cutpoint step of 0.001: ratio1 0.65 ratio2 0.8 dropout 0 from C = 0.400 to 0.545 in 1 run(s), fall 1.60e-02
+  fall on a cutpoint step of 0.001: ratio1 0.75 ratio2 0.8 dropout 0 from C = 0.400 to 0.508 in 1 run(s), fall 3.05e-03
+  fall on a cutpoint step of 0.001: ratio1 0.55 ratio2 0.7 dropout 0.2 from C = 0.400 to 0.423 in 1 run(s), fall 5.86e-05
+  fall on a cutpoint step of 0.001: ratio1 0.55 ratio2 0.8 dropout 0.2 from C = 0.400 to 0.593 in 1 run(s), fall 5.68e-02
+  fall on a cutpoint step of 0.001: ratio1 0.65 ratio2 0.8 dropout 0.2 from C = 0.400 to 0.548 in 1 run(s), fall 1.97e-02
+  fall on a cutpoint step of 0.001: ratio1 0.75 ratio2 0.8 dropout 0.2 from C = 0.400 to 0.510 in 1 run(s), fall 4.04e-03
+  fall on a cutpoint step of 0.001: ratio1 0.55 ratio2 0.7 dropout 0.4 from C = 0.400 to 0.428 in 1 run(s), fall 1.50e-04
+  fall on a cutpoint step of 0.001: ratio1 0.55 ratio2 0.8 dropout 0.4 from C = 0.400 to 0.595 in 1 run(s), fall 6.67e-02
+  fall on a cutpoint step of 0.001: ratio1 0.65 ratio2 0.8 dropout 0.4 from C = 0.400 to 0.551 in 1 run(s), fall 2.44e-02
+  fall on a cutpoint step of 0.001: ratio1 0.75 ratio2 0.8 dropout 0.4 from C = 0.400 to 0.513 in 1 run(s), fall 5.46e-03
+  upper row of Figure 2 (ratio2 0.7), cutpoint step 0.001: curves that fall 3 of 9, ratio1 0.55, falls start at C = 0.400 and end by C = 0.428, largest fall 1.50e-04
   type I error rate over the calibrated cutpoints, smallest 0.0074 largest 0.0182
   contribution of the small trial, largest    0.228 smallest 0.000
   target 0.80: cutpoint 0.815, power 0.769, E(N) under H1 1248, E(N) under H0 505
@@ -103,6 +117,14 @@ Section 4  The tezepelumab design  (Figure 5, Table 4)
   Phase 3 assumptions: information lost to a uniform dropout proportion of 0.2 0.071
   Phase 2 assumptions: information lost to a uniform dropout proportion of 0.1 0.045
   Phase 2 assumptions: information lost to a uniform dropout proportion of 0.2 0.090
+
+  fall on a cutpoint step of 0.001: Phase 3 assumptions, dropout 0, window1 0.75 from C = 0.400 to 0.415 in 1 run(s), fall 4.48e-08
+  fall on a cutpoint step of 0.001: Phase 3 assumptions, dropout 0.1, window1 0.75 from C = 0.400 to 0.418 in 1 run(s), fall 1.07e-07
+  fall on a cutpoint step of 0.001: Phase 3 assumptions, dropout 0.2, window1 0.75 from C = 0.400 to 0.421 in 1 run(s), fall 2.48e-07
+  fall on a cutpoint step of 0.001: Phase 2 assumptions, dropout 0, window1 0.75 from C = 0.400 to 0.445 in 1 run(s), fall 1.72e-07
+  fall on a cutpoint step of 0.001: Phase 2 assumptions, dropout 0.1, window1 0.75 from C = 0.400 to 0.449 in 1 run(s), fall 3.94e-07
+  fall on a cutpoint step of 0.001: Phase 2 assumptions, dropout 0.2, window1 0.75 from C = 0.400 to 0.453 in 1 run(s), fall 8.97e-07
+  Figure 5, cutpoint step 0.001: curves that fall 6 of 18, window1 0.75, falls start at C = 0.400 and end by C = 0.453, largest fall 8.97e-07
 
   cutpoint at which the power crosses 0.90
     Phase 3 assumptions, dropout 0: 0.687 0.691 0.690 for window1 0.25 0.5 0.75

@@ -209,7 +209,8 @@ fig4 <- ggplot(d4_long, aes(n3, value, colour = series, linetype = series)) +
   scale_linetype_manual(values = lty4, labels = lab_series) +
   expand_limits(y = 0) +
   guides(colour = guide_legend(nrow = 2), linetype = guide_legend(nrow = 2)) +
-  labs(x = expression("Patients per group in the large trial, " * italic(n)[3]),
+  labs(x = expression("Patients per group in the large trial, " *
+                        italic(n)[3 * "," * italic(j)]),
        y = "Correlation with the interim statistic") +
   theme_ms
 save_fig(fig4, "figure4_endpoint_structure")
@@ -248,8 +249,8 @@ mat1 <- cbind(fmt(t1$target, 2), fmt(t1$cutpoint, 3), fmt(t1$go_null, 3),
 head1 <- list(
   c("\\multicolumn{2}{c}{Cutpoint}", "\\multicolumn{3}{c}{Under $\\mathrm{H}_0$}",
     "\\multicolumn{5}{c}{Under $\\mathrm{H}_1$}"),
-  c("Target", "$C$", "$\\Pr(\\mathrm{expand})$", "Type I", "$E(N)$",
-    "$\\Pr(\\mathrm{expand})$", "Power", "Small", "Large", "$E(N)$"))
+  c("Target", "$C$", "$\\Pr(\\mathrm{expand})$", "Type I", "$\\mathrm{E}(N)$",
+    "$\\Pr(\\mathrm{expand})$", "Power", "Small", "Large", "$\\mathrm{E}(N)$"))
 cap1 <- paste(
   "Operating characteristics of the 2-in-1 adaptive design for count endpoints",
   "in the reference chronic obstructive pulmonary disease setting. The Phase 2",
@@ -273,7 +274,7 @@ cap1 <- paste(
   "hypothesis, which sets both rate ratios to one, and $\\mathrm{H}_1$",
   "sets the Phase 2 rate ratio to 0.65 and the Phase 3 rate ratio to 0.75. The",
   "columns headed small and large split the power into the small trial and the",
-  "large trial, and $E(N)$ is the expected total number of patients")
+  "large trial, and $\\mathrm{E}(N)$ is the expected total number of patients")
 write_tex_table(mat1, head1, "rrrrrrrrrr",
                 file.path(res_dir, "table1_operating_characteristics.tex"),
                 cap1, "tab:operating",
@@ -390,7 +391,7 @@ head4 <- list(
   c("", "\\multicolumn{2}{c}{Cutpoint}", "",
     "\\multicolumn{5}{c}{Under $\\mathrm{H}_1$}"),
   c("Assumptions", "Target", "$C$", "Type I", "Power", "Small", "Limit",
-    "$N$ for 0.9", "$E(N)$"))
+    "$N$ for 0.9", "$\\mathrm{E}(N)$"))
 cap4 <- paste(
   "The tezepelumab program in severe asthma evaluated as a single 2-in-1",
   "trial. The annualized rate of asthma exacerbations is read at an interim",
@@ -412,8 +413,8 @@ cap4 <- paste(
   "column headed limit is the power that an arbitrarily large trial would",
   "reach, the column headed $N$ for 0.9 is the total number of patients the",
   "large trial needs for a power of 0.9, a dash marks a cutpoint whose",
-  "limit lies below that target, and $E(N)$ is the expected total number of",
-  "patients")
+  "limit lies below that target, and $\\mathrm{E}(N)$ is the expected total",
+  "number of patients")
 write_tex_table(mat4, head4, "lrrrrrrrr",
                 file.path(res_dir, "table4_real_trial.tex"),
                 cap4, "tab:real",
