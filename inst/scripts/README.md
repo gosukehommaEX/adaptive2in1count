@@ -10,10 +10,13 @@ Supporting Information are produced by the pair of scripts in
    `.pdf` and `.eps` and the tables as `.tex` to `results/`.
 
 Separating the two steps means that a change to a figure or a table does not
-require the operating characteristics to be evaluated again. Steps 7 and 8 of
-`data_generate.R` simulate trials, one hundred thousand per scenario under the
-global null hypothesis, and take most of the running time; the rest of the
-script takes seconds.
+require the operating characteristics to be evaluated again. Steps 7, 8 and 8b
+of `data_generate.R` simulate trials, one hundred thousand per scenario under
+the global null hypothesis, and take many hours; the rest of the script takes
+seconds. Their seeds are fixed, so by default the script reads their saved
+results back from `data/validation_table.rds` and `data/shared_rerun.rds`.
+Setting `rerun_simulations <- TRUE` at the top of the script simulates them
+again.
 
 ## Exhibits
 

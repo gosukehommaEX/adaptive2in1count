@@ -388,7 +388,7 @@ mat4 <- cbind(ifelse(duplicated(t4$label), "", t4$label), fmt(t4$target, 2),
               fmt(t4$size_alternative, 0))
 head4 <- list(
   c("", "\\multicolumn{2}{c}{Cutpoint}", "",
-    "\\multicolumn{4}{c}{Under $\\mathrm{H}_1$}", ""),
+    "\\multicolumn{5}{c}{Under $\\mathrm{H}_1$}"),
   c("Assumptions", "Target", "$C$", "Type I", "Power", "Small", "Limit",
     "$N$ for 0.9", "$E(N)$"))
 cap4 <- paste(
@@ -411,12 +411,13 @@ cap4 <- paste(
   "probability of expansion attains the value in the column headed target. The",
   "column headed limit is the power that an arbitrarily large trial would",
   "reach, the column headed $N$ for 0.9 is the total number of patients the",
-  "large trial needs for a power of 0.9, and a dash marks a cutpoint whose",
-  "limit lies below that target")
+  "large trial needs for a power of 0.9, a dash marks a cutpoint whose",
+  "limit lies below that target, and $E(N)$ is the expected total number of",
+  "patients")
 write_tex_table(mat4, head4, "lrrrrrrrr",
                 file.path(res_dir, "table4_real_trial.tex"),
                 cap4, "tab:real",
-                clines = c("\\cline{2-3}\\cline{5-8}", ""),
+                clines = c("\\cline{2-3}\\cline{5-9}", ""),
                 size = "\\footnotesize", colsep = "3pt", stretch = "0.85")
 
 message("exhibits of the main text written to ", res_dir)

@@ -43,6 +43,12 @@ shape_for <- function(dropout) {
 
 cutpoints <- seq(0.4, 2, by = 0.05)
 
+# Steps 7, 8 and 8b simulate trials and take many hours, most of it in the fits
+# that estimate the dispersion. Their seeds are fixed, so a saved result is the
+# result a new run would give, and by default the saved results in data/ are
+# read back. Set rerun_simulations to TRUE to simulate them again.
+rerun_simulations <- FALSE
+
 ## (1) Maximum type I error rate against the cutpoint.
 message("(1/10) maximum type I error rate against the cutpoint")
 nuisance_rate1 <- c(1.2, 2, 3.2)
@@ -51,8 +57,8 @@ panel1 <- expand.grid(dispersion2 = c(0.5, 0.8, 1.5),
                       dropout = c(0, 0.2, 0.4),
                       endpoint = c("phase2", "phase3"),
                       stringsAsFactors = FALSE)
-typeI_curve <- do.call(rbind, lapply(seq_len(nrow(panel1)), function(i) {
-  fit <- adaptive2in1count_typeI(
+typeI_fits <- lapply(seq_len(nrow(panel1)), function(i) {
+  adaptive2in1count_typeI(
     rate1 = nuisance_rate1, rate2 = nuisance_rate2,
     dispersion1 = dispersion1, dispersion2 = panel1$dispersion2[i],
     shared = min(shared, dispersion1, panel1$dispersion2[i]),
@@ -60,11 +66,21 @@ typeI_curve <- do.call(rbind, lapply(seq_len(nrow(panel1)), function(i) {
     window2 = window2, dropout = panel1$dropout[i],
     dropout_shape = shape_for(panel1$dropout[i]), alpha = alpha,
     small_endpoint = panel1$endpoint[i])
+})
+typeI_curve <- do.call(rbind, lapply(seq_len(nrow(panel1)), function(i) {
   data.frame(dispersion2 = panel1$dispersion2[i], dropout = panel1$dropout[i],
-             endpoint = panel1$endpoint[i], fit$maximum,
+             endpoint = panel1$endpoint[i], typeI_fits[[i]]$maximum,
              stringsAsFactors = FALSE)
 }))
 saveRDS(typeI_curve, file.path(data_dir, "typeI_curve.rds"))
+# Every combination of nuisance rates, kept for the relative change of the type
+# I error rate at a single combination, which Section 3.2 quotes beside the
+# relative change of the maximum.
+typeI_all <- do.call(rbind, lapply(seq_len(nrow(panel1)), function(i) {
+  data.frame(dispersion2 = panel1$dispersion2[i], dropout = panel1$dropout[i],
+             endpoint = panel1$endpoint[i], typeI_fits[[i]]$results,
+             stringsAsFactors = FALSE)
+}))
 
 ## (2) Power against the cutpoint, by treatment effect and dropout.
 message("(2/10) power against the cutpoint")
@@ -120,6 +136,58 @@ ordering_counts <- do.call(endpoint_correlation, ordering_example)
 ordering_statistic <- do.call(
   design_components, c(ordering_example, list(n1 = 100, n2 = 100, n3 = 100))
 )$correlation[["interim_large"]]
+# The same comparison along the curves of Figure 3 on a grid of dropout
+# proportions finer than the one the figure is drawn from, so that the ordering
+# stated in Section 3.4 is checked along the curves and not only at the points
+# of the figure. Both correlations coincide under complete follow-up, so an
+# excess below the tolerance is treated as equality.
+fine_step <- 0.0025
+fine_tolerance <- 1e-9
+ordering_excess <- function(dropout, shared, window1, dispersion2) {
+  shape <- shape_for(dropout)
+  design_components(
+    rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
+    dispersion2 = dispersion2, shared = shared, n1 = 100, n2 = 100, n3 = 100,
+    window1 = window1, window2 = window2, dropout = dropout,
+    dropout_shape = shape
+  )$correlation[["interim_large"]] -
+    endpoint_correlation(
+      rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
+      dispersion2 = dispersion2, shared = shared, window1 = window1,
+      window2 = window2, dropout = dropout, dropout_shape = shape)
+}
+fine_grid <- expand.grid(dropout = seq(0, 0.6, by = fine_step),
+                         shared = c(0, 0.23, 0.47, 0.7),
+                         window1 = c(0.25, 0.5, 1),
+                         dispersion2 = c(0.8, 1.5))
+fine_grid$excess <- vapply(seq_len(nrow(fine_grid)), function(i) {
+  ordering_excess(fine_grid$dropout[i], fine_grid$shared[i],
+                  fine_grid$window1[i], fine_grid$dispersion2[i])
+}, numeric(1))
+fine_key <- interaction(fine_grid$shared, fine_grid$window1,
+                        fine_grid$dispersion2, drop = TRUE)
+# For each curve on which rho_0 exceeds the counts, the run of grid points where
+# it does and the upper end of that run located by root finding.
+fine_curves <- split(fine_grid, fine_key)
+fine_reversals <- do.call(rbind, lapply(fine_curves, function(b) {
+  b <- b[order(b$dropout), ]
+  above <- which(b$excess > fine_tolerance)
+  if (length(above) == 0L) {
+    return(NULL)
+  }
+  last <- max(above)
+  upper <- if (last < nrow(b)) {
+    stats::uniroot(function(d) {
+      ordering_excess(d, b$shared[1], b$window1[1], b$dispersion2[1])
+    }, b$dropout[c(last, last + 1L)], tol = 1e-10)$root
+  } else {
+    NA_real_
+  }
+  data.frame(shared = b$shared[1], window1 = b$window1[1],
+             dispersion2 = b$dispersion2[1], first = b$dropout[min(above)],
+             last = b$dropout[last], runs = sum(diff(above) > 1) + 1L,
+             upper = upper, largest = max(b$excess))
+}))
 
 ## (4) Correlation of the interim statistic with the two final statistics when
 ## the two endpoints count the same events over the two windows.
@@ -246,28 +314,50 @@ validation_scenarios <- list(
   list(label = "Small design, both endpoints, dropout 0.3",
        ratio1 = alt_ratio1, ratio2 = alt_ratio2, dropout = reference_dropout,
        sizes = c(30, 45, 200), nsim = 50000))
-validation_table <- do.call(rbind, lapply(validation_scenarios, function(z) {
-  arguments <- list(rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
-                    dispersion2 = dispersion2, shared = shared,
-                    n1 = z$sizes[1], n2 = z$sizes[2], n3 = z$sizes[3],
-                    cutpoint = validation_cutpoints, window1 = window1,
-                    window2 = window2, dropout = z$dropout,
-                    dropout_shape = shape_for(z$dropout), alpha = alpha,
-                    ratio1 = z$ratio1, ratio2 = z$ratio2)
-  approximate <- do.call(adaptive2in1count, arguments)$results
-  known <- do.call(adaptive2in1count_simulate,
-                   c(arguments, list(method = "known", nsim = z$nsim,
-                                     seed = 20260806)))
-  estimated <- do.call(adaptive2in1count_simulate,
-                       c(arguments, list(method = "estimated", nsim = z$nsim,
-                                         seed = 20260806)))
-  data.frame(label = z$label, cutpoint = validation_cutpoints,
-             approximate = approximate$rejection, known = known$rejection,
-             estimated = estimated$rejection, se_known = known$se_rejection,
-             se_estimated = estimated$se_rejection, nsim = z$nsim,
-             stringsAsFactors = FALSE)
-}))
-saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
+# Steps 7, 8 and 8b read their results back from data/ unless
+# rerun_simulations is TRUE (see the top of the script). The saved table is
+# used for a list of scenarios only when it holds every one of them.
+saved_validation <- file.path(data_dir, "validation_table.rds")
+saved_rows <- if (!rerun_simulations && file.exists(saved_validation)) {
+  readRDS(saved_validation)
+} else {
+  NULL
+}
+saved_part <- function(scenarios) {
+  labels <- vapply(scenarios, function(z) z$label, character(1))
+  if (is.null(saved_rows) || !all(labels %in% saved_rows$label)) {
+    return(NULL)
+  }
+  saved_rows[saved_rows$label %in% labels, , drop = FALSE]
+}
+validation_table <- saved_part(validation_scenarios)
+computed_validation <- is.null(validation_table)
+if (computed_validation) {
+  validation_table <- do.call(rbind, lapply(validation_scenarios, function(z) {
+    arguments <- list(rate1 = rate1, rate2 = rate2, dispersion1 = dispersion1,
+                      dispersion2 = dispersion2, shared = shared,
+                      n1 = z$sizes[1], n2 = z$sizes[2], n3 = z$sizes[3],
+                      cutpoint = validation_cutpoints, window1 = window1,
+                      window2 = window2, dropout = z$dropout,
+                      dropout_shape = shape_for(z$dropout), alpha = alpha,
+                      ratio1 = z$ratio1, ratio2 = z$ratio2)
+    approximate <- do.call(adaptive2in1count, arguments)$results
+    known <- do.call(adaptive2in1count_simulate,
+                     c(arguments, list(method = "known", nsim = z$nsim,
+                                       seed = 20260806)))
+    estimated <- do.call(adaptive2in1count_simulate,
+                         c(arguments, list(method = "estimated", nsim = z$nsim,
+                                           seed = 20260806)))
+    data.frame(label = z$label, cutpoint = validation_cutpoints,
+               approximate = approximate$rejection, known = known$rejection,
+               estimated = estimated$rejection, se_known = known$se_rejection,
+               se_estimated = estimated$se_rejection, nsim = z$nsim,
+               stringsAsFactors = FALSE)
+  }))
+  saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
+} else {
+  message("    read from ", saved_validation)
+}
 
 ## (8) The normal approximation against simulation for a shared endpoint.
 message("(8/10) the normal approximation for a shared endpoint")
@@ -278,29 +368,37 @@ shared_scenarios <- list(
        dropout = reference_dropout, window1 = 0.5, nsim = 10000),
   list(label = "Shared endpoint, one window, dropout 0.3", ratio = 0.75,
        dropout = reference_dropout, window1 = window2, nsim = 10000))
-validation_shared <- do.call(rbind, lapply(shared_scenarios, function(z) {
-  arguments <- list(rate1 = rate2, rate2 = rate2, dispersion1 = dispersion2,
-                    dispersion2 = dispersion2, shared = dispersion2, n1 = n1,
-                    n2 = n2, n3 = n3, cutpoint = validation_cutpoints,
-                    window1 = z$window1, window2 = window2,
-                    dropout = z$dropout, dropout_shape = shape_for(z$dropout),
-                    alpha = alpha, ratio1 = z$ratio, ratio2 = z$ratio,
-                    endpoints = "shared")
-  approximate <- do.call(adaptive2in1count, arguments)$results
-  known <- do.call(adaptive2in1count_simulate,
-                   c(arguments, list(method = "known", nsim = z$nsim,
-                                     seed = 20260806)))
-  estimated <- do.call(adaptive2in1count_simulate,
-                       c(arguments, list(method = "estimated", nsim = z$nsim,
-                                         seed = 20260806)))
-  data.frame(label = z$label, cutpoint = validation_cutpoints,
-             approximate = approximate$rejection, known = known$rejection,
-             estimated = estimated$rejection, se_known = known$se_rejection,
-             se_estimated = estimated$se_rejection, nsim = z$nsim,
-             stringsAsFactors = FALSE)
-}))
+validation_shared <- saved_part(shared_scenarios)
+computed_shared <- is.null(validation_shared)
+if (computed_shared) {
+  validation_shared <- do.call(rbind, lapply(shared_scenarios, function(z) {
+    arguments <- list(rate1 = rate2, rate2 = rate2, dispersion1 = dispersion2,
+                      dispersion2 = dispersion2, shared = dispersion2, n1 = n1,
+                      n2 = n2, n3 = n3, cutpoint = validation_cutpoints,
+                      window1 = z$window1, window2 = window2,
+                      dropout = z$dropout, dropout_shape = shape_for(z$dropout),
+                      alpha = alpha, ratio1 = z$ratio, ratio2 = z$ratio,
+                      endpoints = "shared")
+    approximate <- do.call(adaptive2in1count, arguments)$results
+    known <- do.call(adaptive2in1count_simulate,
+                     c(arguments, list(method = "known", nsim = z$nsim,
+                                       seed = 20260806)))
+    estimated <- do.call(adaptive2in1count_simulate,
+                         c(arguments, list(method = "estimated", nsim = z$nsim,
+                                           seed = 20260806)))
+    data.frame(label = z$label, cutpoint = validation_cutpoints,
+               approximate = approximate$rejection, known = known$rejection,
+               estimated = estimated$rejection, se_known = known$se_rejection,
+               se_estimated = estimated$se_rejection, nsim = z$nsim,
+               stringsAsFactors = FALSE)
+  }))
+} else {
+  message("    read from ", saved_validation)
+}
 validation_table <- rbind(validation_table, validation_shared)
-saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
+if (computed_validation || computed_shared) {
+  saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
+}
 
 ## (8b) The shared scenario under the global null repeated with three further
 ## seeds. Table 3 keeps the seed fixed in advance, and the repetition shows
@@ -308,21 +406,28 @@ saveRDS(validation_table, file.path(data_dir, "validation_table.rds"))
 ## recurs.
 message("(8b/10) the shared scenario under the global null with further seeds")
 rerun_seeds <- c(20261101, 20261102, 20261103)
-shared_rerun <- do.call(rbind, lapply(rerun_seeds, function(s) {
-  z <- shared_scenarios[[1]]
-  arguments <- list(rate1 = rate2, rate2 = rate2, dispersion1 = dispersion2,
-                    dispersion2 = dispersion2, shared = dispersion2, n1 = n1,
-                    n2 = n2, n3 = n3, cutpoint = validation_cutpoints,
-                    window1 = z$window1, window2 = window2,
-                    dropout = z$dropout, dropout_shape = shape_for(z$dropout),
-                    alpha = alpha, ratio1 = z$ratio, ratio2 = z$ratio,
-                    endpoints = "shared")
-  known <- do.call(adaptive2in1count_simulate,
-                   c(arguments, list(method = "known", nsim = z$nsim,
-                                     seed = s)))
-  data.frame(seed = s, cutpoint = validation_cutpoints,
-             known = known$rejection, nsim = known$nsim)
-}))
+saved_rerun <- file.path(data_dir, "shared_rerun.rds")
+if (!rerun_simulations && file.exists(saved_rerun)) {
+  shared_rerun <- readRDS(saved_rerun)
+  message("    read from ", saved_rerun)
+} else {
+  shared_rerun <- do.call(rbind, lapply(rerun_seeds, function(s) {
+    z <- shared_scenarios[[1]]
+    arguments <- list(rate1 = rate2, rate2 = rate2, dispersion1 = dispersion2,
+                      dispersion2 = dispersion2, shared = dispersion2, n1 = n1,
+                      n2 = n2, n3 = n3, cutpoint = validation_cutpoints,
+                      window1 = z$window1, window2 = window2,
+                      dropout = z$dropout, dropout_shape = shape_for(z$dropout),
+                      alpha = alpha, ratio1 = z$ratio, ratio2 = z$ratio,
+                      endpoints = "shared")
+    known <- do.call(adaptive2in1count_simulate,
+                     c(arguments, list(method = "known", nsim = z$nsim,
+                                       seed = s)))
+    data.frame(seed = s, cutpoint = validation_cutpoints,
+               known = known$rejection, nsim = known$nsim)
+  }))
+  saveRDS(shared_rerun, saved_rerun)
+}
 
 ## (9) The tezepelumab development programme in severe asthma, evaluated as a
 ## single 2-in-1 trial. Every parameter is a design assumption taken from the
@@ -445,6 +550,29 @@ say("  relative change across dropout, median     ",
     fmt(median(relative, na.rm = TRUE)))
 say("  relative change across dropout, largest    ",
     fmt(max(relative, na.rm = TRUE)))
+# The same relative change at a single combination of nuisance rates, which is
+# the type I error rate of a design whose rates are known.
+key_all <- interaction(typeI_all$dispersion2, typeI_all$endpoint,
+                       typeI_all$rate1, typeI_all$rate2,
+                       round(typeI_all$cutpoint, 3), drop = TRUE)
+relative_all <- vapply(split(typeI_all$type1, key_all), function(v) {
+  if (length(v) < 2) NA_real_ else (max(v) - min(v)) / min(v)
+}, numeric(1))
+top_rows <- typeI_all[key_all == names(which.max(relative_all)), ]
+top_rows <- top_rows[order(top_rows$dropout), ]
+say("  relative change across dropout at a single combination of nuisance ",
+    "rates, combinations ", sum(!is.na(relative_all)))
+say("  relative change across dropout at a single combination, median  ",
+    fmt(median(relative_all, na.rm = TRUE)))
+say("  relative change across dropout at a single combination, largest ",
+    fmt(max(relative_all, na.rm = TRUE)))
+say("    at dispersion2 ", top_rows$dispersion2[1], ", small trial on ",
+    top_rows$endpoint[1], ", rates ", top_rows$rate1[1], " and ",
+    top_rows$rate2[1], ", C = ", fmt(top_rows$cutpoint[1], 2), ": ",
+    paste(fmt(top_rows$type1, 5), collapse = " "), " at dropout ",
+    paste(top_rows$dropout, collapse = " "))
+say("  largest type I error rate at a single combination ",
+    fmt(max(typeI_all$type1)))
 say("")
 
 say("Section 3.3  Power and the cutpoint  (Figure 2, Tables 1 and 2)")
@@ -552,6 +680,18 @@ say("  rho_0 against the correlation of the counts over Figure 3: largest ",
           round(correlation_endpoint$correlation, 4)),
     " of ", nrow(correlation_endpoint),
     ", largest excess of the counts ", fmt(max(-excess), 3))
+say("  rho_0 against the correlation of the counts along the curves of ",
+    "Figure 3, dropout step ", fine_step, ": curves with rho_0 above ",
+    if (is.null(fine_reversals)) 0L else nrow(fine_reversals), " of ",
+    nlevels(fine_key))
+for (i in seq_len(if (is.null(fine_reversals)) 0L else nrow(fine_reversals))) {
+  r <- fine_reversals[i, ]
+  say("    dispersion2 ", r$dispersion2, ", shared ", r$shared, ", window1 ",
+      r$window1, ": above from dropout ", fmt(r$first), " to ", fmt(r$last),
+      " on the grid in ", r$runs, " run(s), up to ", fmt(r$upper),
+      " by root finding, largest excess ",
+      formatC(r$largest, format = "e", digits = 1))
+}
 say("  ordering example, rates 5, dispersions 0.7 and 0.8, shared 0.7, ",
     "window1 0.25, exponential dropout 0.4: counts ",
     fmt(ordering_counts, 3), ", rho_0 ", fmt(ordering_statistic, 3))
@@ -606,6 +746,9 @@ say("  shared endpoint, global null, ", length(rerun_seeds),
     " replications, dispersion known: ",
     paste(fmt(rerun_pooled), collapse = " "), "; closed form ",
     paste(fmt(rerun_closed), collapse = " "))
+say("  same re-run, binomial standard error, dispersion known: ",
+    paste(fmt(sqrt(rerun_pooled * (1 - rerun_pooled) / rerun_total)),
+          collapse = " "))
 say("")
 
 say("Section 4  The tezepelumab design  (Figure 5, Table 4)")

@@ -1,5 +1,5 @@
 Numbers quoted by the main text
-Written by inst/scripts/data_generate.R on 2026-10-12
+Written by inst/scripts/data_generate.R on 2026-10-14
 
 Section 3.2  Type I error rate  (Figure 1)
   combinations evaluated                     594
@@ -8,6 +8,11 @@ Section 3.2  Type I error rate  (Figure 1)
   smallest, small trial on phase3          0.0208
   relative change across dropout, median     0.0028
   relative change across dropout, largest    0.0779
+  relative change across dropout at a single combination of nuisance rates, combinations 1782
+  relative change across dropout at a single combination, median  0.0035
+  relative change across dropout at a single combination, largest 0.1039
+    at dispersion2 1.5, small trial on phase2, rates 1.2 and 0.8, C = 0.60: 0.01263 0.01209 0.01144 at dropout 0 0.2 0.4
+  largest type I error rate at a single combination 0.0250
 
 Section 3.3  Power and the cutpoint  (Figure 2, Tables 1 and 2)
   dip: ratio1 0.55 ratio2 0.8 dropout 0  from 0.771 at C = 0.40 to 0.723 at C = 0.60, largest power 0.844
@@ -58,6 +63,8 @@ Section 3.4  The two sources of correlation  (Figures 3 and 4)
   window1 1 dropout 0.2: rho_XY 0.816 (one endpoint) and 0.816 (two endpoints); rho_XZ from 0.816 to 0.298 (one endpoint) and from 0.286 to 0.104 (two endpoints)
   window1 1 dropout 0.4: rho_XY 0.816 (one endpoint) and 0.816 (two endpoints); rho_XZ from 0.816 to 0.298 (one endpoint) and from 0.274 to 0.100 (two endpoints)
   rho_0 against the correlation of the counts over Figure 3: largest excess of rho_0 3.0e-05, points with rho_0 above at four decimals 0 of 312, largest excess of the counts 0.114
+  rho_0 against the correlation of the counts along the curves of Figure 3, dropout step 0.0025: curves with rho_0 above 1 of 24
+    dispersion2 0.8, shared 0.7, window1 0.25: above from dropout 0.0025 to 0.0875 on the grid in 1 run(s), up to 0.0884 by root finding, largest excess 3.0e-05
   ordering example, rates 5, dispersions 0.7 and 0.8, shared 0.7, window1 0.25, exponential dropout 0.4: counts 0.652, rho_0 0.666
   largest correlation of the counts at the largest shared frailty, window1 0.25: 0.475
   largest correlation of the counts at the largest shared frailty, window1 0.5: 0.564
@@ -72,6 +79,7 @@ Section 3.5  Accuracy of the normal approximation  (Table 3)
   largest gap, dispersion known, in Shared endpoint, global null, dropout 0.3 at C = 0.8
   largest gap, dispersion estimated, in Shared endpoint, global null, dropout 0.3 at C = 0.8
   shared endpoint, global null, 3 further seeds and 300,000 replications, dispersion known: 0.0117 0.0226 0.0248; closed form 0.0120 0.0229 0.0248
+  same re-run, binomial standard error, dispersion known: 0.0002 0.0003 0.0003
 
 Section 4  The tezepelumab design  (Figure 5, Table 4)
   Phase 3 assumptions
